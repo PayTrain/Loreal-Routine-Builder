@@ -253,3 +253,100 @@ body {
 .generate-btn i {
   margin-right: 8px;
 }
+
+/* ================= Chat Bubble Styling (added from previous project) ================= */
+/* These styles create distinct user/assistant bubbles without altering the existing
+   chat-window container's outward appearance. */
+.chat-message {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-message .message-meta {
+  margin-bottom: 6px;
+  color: #666666;
+  font-size: 14px;
+}
+
+.chat-message.user {
+  align-items: flex-end;
+}
+
+.chat-message.assistant {
+  align-items: flex-start;
+}
+
+.chat-message .message-body {
+  margin: 0;
+  max-width: 75%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  word-wrap: break-word;
+  font-size: 16px;
+  line-height: 1.5;
+  background: #fff; /* default background */
+  color: #000;
+  white-space: pre-line; /* respect \n inserted by formatter for paragraphs */
+}
+
+.chat-message.user .message-body {
+  background: #000;
+  color: #fff;
+}
+
+.chat-message.assistant .message-body {
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  color: #000000;
+}
+
+/* Markdown lists & headings inside bubbles */
+.message-body ul {
+  margin: 0.5rem 0;
+  padding-left: 1.4rem;
+  list-style-type: disc;
+}
+.message-body ol {
+  margin: 0.5rem 0;
+  padding-left: 1.6rem; /* slightly more for numbers */
+  list-style-type: decimal;
+}
+.message-body li {
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}
+.message-body ul ul,
+.message-body ul ol,
+.message-body ol ul,
+.message-body ol ol {
+  margin: 0.35rem 0;
+  padding-left: 1.2rem; /* nested indentation */
+}
+.message-body h1,
+.message-body h2,
+.message-body h3,
+.message-body h4,
+.message-body h5,
+.message-body h6 {
+  margin: 0.75rem 0 0.5rem 0;
+  font-weight: 600;
+}
+.message-body h1 {
+  font-size: 1.3rem;
+}
+.message-body h2 {
+  font-size: 1.2rem;
+}
+.message-body h3 {
+  font-size: 1.1rem;
+}
+.message-body h4 {
+  font-size: 1rem;
+}
+.message-body h5 {
+  font-size: 0.95rem;
+}
+.message-body h6 {
+  font-size: 0.9rem;
+}
