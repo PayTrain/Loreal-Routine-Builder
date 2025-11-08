@@ -19,20 +19,90 @@ async function loadProducts() {
   return data.products;
 }
 
+// Track selected products by id
+let selectedProducts = [];
+
 function displayProducts(products) {
   productsContainer.innerHTML = products
+    .map((product) => {
+      const isSelected = selectedProducts.some((p) => p.id === product.id);
+      return `
+        <div class="product-card${isSelected ? " selected" : ""}" data-id="${
+        product.id
+      }">
+          <img src="${product.image}" alt="${product.name}">
+          <div class="product-info">
+            <h3>${product.name}</h3>
+            <p>${product.brand}</p>
+          </div>
+          ${
+            isSelected
+              ? '<div class="selected-check"><i class="fa-solid fa-check"></i></div>'
+              : ""
+          }
+        </div>
+      `;
+    })
+    .join("");
+
+  // Add click listeners for selection
+  const cards = productsContainer.querySelectorAll(".product-card");
+  cards.forEach((card) => {
+    card.addEventListener("click", () => {
+      const id = card.getAttribute("data-id");
+      const product = products.find((p) => p.id == id);
+      const alreadySelected = selectedProducts.some((p) => p.id == id);
+      if (alreadySelected) {
+        selectedProducts = selectedProducts.filter((p) => p.id != id);
+      } else {
+        selectedProducts.push(product);
+      }
+      displayProducts(products);
+      updateSelectedProducts();
+    });
+  });
+}
+
+function updateSelectedProducts() {
+  const selectedList = document.getElementById("selectedProductsList");
+  if (!selectedProducts.length) {
+    selectedList.innerHTML = `<div class="placeholder-message">No products selected</div>`;
+    return;
+  }
+  selectedList.innerHTML = selectedProducts
     .map(
       (product) => `
-    <div class="product-card">
-      <img src="${product.image}" alt="${product.name}">
-      <div class="product-info">
-        <h3>${product.name}</h3>
-        <p>${product.brand}</p>
-      </div>
-    </div>
-  `
+        <div class="selected-product-item" data-id="${product.id}">
+          <img src="${product.image}" alt="${product.name}">
+          <div class="selected-info">
+            <span>${product.name}</span>
+            <button class="remove-selected" title="Remove"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        </div>
+      `
     )
     .join("");
+
+  // Remove button logic
+  selectedList.querySelectorAll(".remove-selected").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const item = btn.closest(".selected-product-item");
+      const id = item.getAttribute("data-id");
+      selectedProducts = selectedProducts.filter((p) => p.id != id);
+      // Re-render both sections
+      const currentCategory = categoryFilter.value;
+      if (currentCategory) {
+        loadProducts().then((products) => {
+          const filtered = products.filter(
+            (p) => p.category === currentCategory
+          );
+          displayProducts(filtered);
+        });
+      }
+      updateSelectedProducts();
+    });
+  });
 }
 
 categoryFilter.addEventListener("change", async (e) => {
@@ -43,6 +113,9 @@ categoryFilter.addEventListener("change", async (e) => {
   );
   displayProducts(filteredProducts);
 });
+
+// Initial update for selected products section
+updateSelectedProducts();
 
 /* ===================== Chatbot Inner Workings (from previous project) ===================== */
 // System prompt carried over from previous implementation

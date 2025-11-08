@@ -181,11 +181,40 @@ body {
 .product-card {
   flex: 0 1 calc(33.333% - 14px);
   border: 1px solid #ccc;
-  padding: 15px;
+  padding: 35px 15px;
   border-radius: 4px;
   display: flex;
   gap: 15px;
   min-height: 160px;
+  position: relative; /* Needed for checkmark overlay */
+}
+
+.product-card.selected {
+  border: 2.5px solid #000;
+  box-shadow: 0 0 0 3px #e6e6e6;
+  background: #f5f5f5;
+  box-sizing: border-box;
+  /* Use outline for border outside padding */
+  outline: 1.5px solid #000;
+  border: 1px solid #ccc; /* fallback for non-selected */
+}
+
+.product-card .selected-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #000;
+  color: #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+  pointer-events: none;
 }
 
 .product-card img {
