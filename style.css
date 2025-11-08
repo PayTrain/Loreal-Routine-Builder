@@ -258,7 +258,107 @@ body {
 #selectedProductsList {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  justify-content: center; /* Center cards when fewer than max per row */
+  gap: 16px; /* Fixed gap for all screen sizes */
+}
+
+/* cohesive selected product cards */
+.selected-card {
+  position: relative;
+  /* Calculate card width: (container width - total gaps) / number of cards per row */
+  /* For 4 cards: (100% - 3*16px) / 4 = calc((100% - 48px) / 4) */
+  flex: 0 0 calc((100% - 48px) / 4); /* 4 per row on wide screens, 3 gaps of 16px */
+  min-width: 150px;
+  max-width: 200px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 14px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* vertically center content */
+  gap: 8px;
+  text-align: center;
+  transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
+}
+
+.selected-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+  border-color: #000;
+}
+
+.selected-card img {
+  width: 100%;
+  max-width: 110px;
+  height: 110px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+  pointer-events: none; /* allow click anywhere for removal if desired later */
+}
+
+.selected-card .card-title {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #222;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  /* add non-prefixed fallback for future support */
+  line-clamp: 3;
+}
+
+.selected-card .remove-selected {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #000;
+  color: #fff;
+  border: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.25s, transform 0.25s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.selected-card .remove-selected:hover {
+  background: #666;
+  transform: scale(1.07);
+}
+
+.selected-card .remove-selected:focus {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
+/* responsive adjustments - maintain same gap across all breakpoints */
+@media (max-width: 900px) {
+  .selected-card {
+    /* 3 per row: (100% - 2*16px) / 3 = calc((100% - 32px) / 3) */
+    flex: 0 0 calc((100% - 32px) / 3);
+  }
+}
+@media (max-width: 650px) {
+  .selected-card {
+    /* 2 per row: (100% - 1*16px) / 2 = calc((100% - 16px) / 2) */
+    flex: 0 0 calc((100% - 16px) / 2);
+  }
+}
+@media (max-width: 420px) {
+  .selected-card {
+    /* 1 per row: takes full width, no gap calculation needed */
+    flex: 0 0 100%;
+  }
 }
 
 .generate-btn {

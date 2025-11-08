@@ -21,8 +21,12 @@ async function loadProducts() {
 
 // Track selected products by id
 let selectedProducts = [];
+// Cache of the products currently shown in the grid for instant re-render
+let lastDisplayedProducts = [];
 
 function displayProducts(products) {
+  // cache reference for immediate refreshes (e.g., when removing via Selected section)
+  lastDisplayedProducts = products;
   productsContainer.innerHTML = products
     .map((product) => {
       const isSelected = selectedProducts.some((p) => p.id === product.id);
@@ -69,36 +73,31 @@ function updateSelectedProducts() {
     selectedList.innerHTML = `<div class="placeholder-message">No products selected</div>`;
     return;
   }
+  // Build uniform card elements for selected products
   selectedList.innerHTML = selectedProducts
-    .map(
-      (product) => `
-        <div class="selected-product-item" data-id="${product.id}">
+    .map((product) => {
+      return `
+        <div class="selected-card" data-id="${product.id}">
+          <button class="remove-selected" aria-label="Remove ${product.name}" title="Remove">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
           <img src="${product.image}" alt="${product.name}">
-          <div class="selected-info">
-            <span>${product.name}</span>
-            <button class="remove-selected" title="Remove"><i class="fa-solid fa-xmark"></i></button>
-          </div>
+          <div class="card-title">${product.name}</div>
         </div>
-      `
-    )
+      `;
+    })
     .join("");
 
   // Remove button logic
   selectedList.querySelectorAll(".remove-selected").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const item = btn.closest(".selected-product-item");
-      const id = item.getAttribute("data-id");
+      const card = btn.closest(".selected-card");
+      const id = card.getAttribute("data-id");
       selectedProducts = selectedProducts.filter((p) => p.id != id);
-      // Re-render both sections
-      const currentCategory = categoryFilter.value;
-      if (currentCategory) {
-        loadProducts().then((products) => {
-          const filtered = products.filter(
-            (p) => p.category === currentCategory
-          );
-          displayProducts(filtered);
-        });
+      // Immediately refresh the products grid using cached results (no fetch delay)
+      if (lastDisplayedProducts && lastDisplayedProducts.length) {
+        displayProducts(lastDisplayedProducts);
       }
       updateSelectedProducts();
     });
