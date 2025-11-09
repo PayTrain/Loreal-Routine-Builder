@@ -85,6 +85,37 @@
       </footer>
     </div>
 
+    <!-- Accessible Product Details Modal -->
+    <div
+      id="productModal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+      aria-describedby="modalBrand modalDescription"
+      hidden
+    >
+      <div class="modal-content" role="document" tabindex="-1">
+        <button
+          class="modal-close"
+          id="modalCloseBtn"
+          aria-label="Close details"
+        >
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+        <img id="modalImage" class="modal-image" alt="" />
+        <p id="modalBrand" class="modal-brand"></p>
+        <div class="modal-title-row">
+          <h3 id="modalTitle"></h3>
+          <button id="modalAddBtn" class="modal-add-btn" type="button">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            <span>Add</span>
+          </button>
+        </div>
+        <p id="modalDescription"></p>
+      </div>
+    </div>
+
     <!-- secrets.js can be removed when using Cloudflare Workers for API requests -->
     <script src="secrets.js"></script>
     <script src="script.js"></script>

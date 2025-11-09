@@ -242,6 +242,32 @@ body {
   color: #666;
 }
 
+/* info button within product card */
+.product-card .info-btn {
+  align-self: flex-start;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border: 1px solid #666; /* match brand text color */
+  background: #fff;
+  color: #666; /* match brand text color */
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
+}
+
+.product-card .info-btn:hover {
+  background: #666;
+  color: #fff;
+  border-color: #666;
+}
+
+.product-card .info-btn:focus {
+  outline: 1.2px solid #000;
+  outline-offset: 2px;
+}
+
 /* selected products */
 .selected-products {
   margin: 40px 0;
@@ -478,4 +504,137 @@ body {
 }
 .message-body h6 {
   font-size: 0.9rem;
+}
+
+/* ================= Modal (Product Details) ================= */
+body.modal-open {
+  overflow: hidden; /* prevent background scroll while modal open */
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  color: #000;
+  width: 100%;
+  max-width: 680px;
+  border-radius: 10px;
+  padding: 22px 22px 24px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h3 {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.modal-content p {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.modal-image {
+  width: 210px;
+  height: 210px;
+  object-fit: contain;
+  display: block;
+  margin: 14px auto 20px;
+  filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.17));
+  transition: transform 0.25s ease;
+}
+
+.modal-image:hover {
+  transform: scale(1.03);
+}
+
+.modal-brand {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 14px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #000;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: #666;
+}
+
+.modal-close:focus {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
+/* Add button inside modal */
+.modal-add-btn {
+  margin: 0; /* inline with title */
+  width: auto; /* tight to text */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px; /* tighter gap between icon and text */
+  padding: 6px 12px; /* tighter padding around text */
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  background: #000;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.1s ease;
+}
+
+/* Title row with right-aligned button */
+.modal-title-row {
+  display: flex;
+  align-items: center; /* vertically center button with first line of title */
+  gap: 14px; /* space between title and button */
+  margin-bottom: 12px;
+}
+
+.modal-title-row h3 {
+  flex: 1;
+  margin: 0; /* remove bottom margin since row handles spacing */
+  font-size: 20px;
+}
+
+.modal-add-btn:hover {
+  background: #333;
+}
+
+.modal-add-btn:active {
+  transform: translateY(1px);
+}
+
+.modal-add-btn:focus {
+  outline: 2px solid #000;
+  outline-offset: 2px;
 }

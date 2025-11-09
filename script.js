@@ -6,6 +6,18 @@ const chatWindow = document.getElementById("chatWindow");
 const userInput = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
 
+// Modal elements for product descriptions
+const modal = document.getElementById("productModal");
+const modalContent = modal ? modal.querySelector(".modal-content") : null;
+const modalTitle = document.getElementById("modalTitle");
+const modalDescription = document.getElementById("modalDescription");
+const modalCloseBtn = document.getElementById("modalCloseBtn");
+const modalImage = document.getElementById("modalImage");
+const modalBrand = document.getElementById("modalBrand");
+const modalAddBtn = document.getElementById("modalAddBtn");
+let lastFocusedEl = null; // to restore focus after closing modal
+let currentModalProduct = null; // track the product shown in modal
+
 // Keep initial products placeholder exactly as before
 productsContainer.innerHTML = `
   <div class="placeholder-message">
@@ -38,6 +50,9 @@ function displayProducts(products) {
           <div class="product-info">
             <h3>${product.name}</h3>
             <p>${product.brand}</p>
+            <button class="info-btn" type="button" aria-label="View details for ${
+              product.name
+            }">Details</button>
           </div>
           ${
             isSelected
@@ -63,6 +78,18 @@ function displayProducts(products) {
       }
       displayProducts(products);
       updateSelectedProducts();
+    });
+  });
+
+  // Info buttons open the modal, without toggling selection
+  const infoButtons = productsContainer.querySelectorAll(".info-btn");
+  infoButtons.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const card = btn.closest(".product-card");
+      const id = card.getAttribute("data-id");
+      const product = products.find((p) => p.id == id);
+      openProductModal(product, btn);
     });
   });
 }
@@ -115,6 +142,145 @@ categoryFilter.addEventListener("change", async (e) => {
 
 // Initial update for selected products section
 updateSelectedProducts();
+
+/* ===================== Accessible Modal: open/close + focus trap ===================== */
+function getFocusableElements(container) {
+  const selectors = [
+    "a[href]",
+    "button:not([disabled])",
+    "textarea:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    '[tabindex]:not([tabindex="-1"])',
+  ];
+  return Array.from(container.querySelectorAll(selectors.join(","))).filter(
+    (el) => el.offsetParent !== null || el === document.activeElement
+  );
+}
+
+let keydownHandler = null;
+let outsideClickHandler = null;
+
+function openProductModal(product, triggerEl) {
+  if (!modal || !modalContent) return;
+  lastFocusedEl = triggerEl || document.activeElement;
+
+  // Fill content
+  currentModalProduct = product;
+  modalTitle.textContent = `${product.name}`;
+  modalDescription.textContent = product.description;
+  if (modalImage) {
+    modalImage.src = product.image;
+    modalImage.alt = product.name;
+  }
+  if (modalBrand) {
+    modalBrand.textContent = product.brand;
+  }
+
+  // Configure Add button state and handler
+  if (modalAddBtn) {
+    const isAlreadySelected = selectedProducts.some((p) => p.id == product.id);
+    modalAddBtn.disabled = isAlreadySelected;
+    modalAddBtn.setAttribute(
+      "aria-disabled",
+      isAlreadySelected ? "true" : "false"
+    );
+    modalAddBtn.querySelector("span").textContent = isAlreadySelected
+      ? "Already Selected"
+      : "Add";
+
+    // Bind click (overwrite previous to avoid stacking listeners)
+    modalAddBtn.onclick = () => {
+      const stillSelected = selectedProducts.some((p) => p.id == product.id);
+      if (!stillSelected) {
+        selectedProducts.push(product);
+      }
+      // Refresh UI
+      if (lastDisplayedProducts && lastDisplayedProducts.length) {
+        displayProducts(lastDisplayedProducts);
+      }
+      updateSelectedProducts();
+      closeProductModal();
+    };
+  }
+
+  // Show modal
+  modal.removeAttribute("hidden");
+  document.body.classList.add("modal-open");
+
+  // Focus the modal content (so screen readers land inside the dialog)
+  modalContent.focus();
+
+  // Close on overlay click (clicking background area)
+  outsideClickHandler = (e) => {
+    if (e.target === modal) {
+      closeProductModal();
+    }
+  };
+  modal.addEventListener("mousedown", outsideClickHandler);
+
+  // Keyboard handling: Esc to close, Tab to trap focus
+  keydownHandler = (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeProductModal();
+      return;
+    }
+    if (e.key === "Tab") {
+      const focusables = getFocusableElements(modalContent);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
+  document.addEventListener("keydown", keydownHandler);
+
+  // Close button
+  if (modalCloseBtn) {
+    modalCloseBtn.addEventListener("click", closeProductModal);
+  }
+}
+
+function closeProductModal() {
+  if (!modal) return;
+  modal.setAttribute("hidden", "");
+  document.body.classList.remove("modal-open");
+  // Cleanup listeners
+  if (outsideClickHandler) {
+    modal.removeEventListener("mousedown", outsideClickHandler);
+    outsideClickHandler = null;
+  }
+  if (keydownHandler) {
+    document.removeEventListener("keydown", keydownHandler);
+    keydownHandler = null;
+  }
+  if (modalCloseBtn) {
+    modalCloseBtn.removeEventListener("click", closeProductModal);
+  }
+  // Restore focus back to the element that opened the modal
+  if (lastFocusedEl && typeof lastFocusedEl.focus === "function") {
+    lastFocusedEl.focus();
+  }
+
+  // Clear current product reference
+  currentModalProduct = null;
+}
+
+// Safety: wire up close button if user somehow focuses it before first open
+if (modalCloseBtn) {
+  modalCloseBtn.addEventListener("click", closeProductModal);
+}
 
 /* ===================== Chatbot Inner Workings (from previous project) ===================== */
 // System prompt carried over from previous implementation
