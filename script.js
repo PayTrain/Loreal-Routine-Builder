@@ -283,8 +283,19 @@ if (modalCloseBtn) {
 }
 
 /* ===================== Chatbot Inner Workings (from previous project) ===================== */
-// System prompt carried over from previous implementation
-const SYSTEM_PROMPT = `You are an official L'Oréal product assistant. ONLY answer questions related to L'Oréal products, skincare and haircare routines, and product recommendations. If a user asks about non-L'Oréal products or unrelated topics, politely explain you only provide L'Oréal-specific information and offer comparable L'Oréal alternatives when possible. Ask clarifying questions about skin type, hair type, concerns, sensitivities, and budget when needed. Do not provide medical, legal, or diagnostic advice — direct users to a professional in those cases. Keep answers friendly, factual, concise, and include product names and recommended usage steps when relevant.`;
+// System prompt refined to explicitly include L'Oréal portfolio brands and scope limitations
+const SYSTEM_PROMPT = `You are an official L'Oréal product assistant.
+
+Scope and limitations:
+- Only answer questions related to beauty: skincare, haircare, makeup, fragrance, suncare, men's grooming, and product routines/recommendations.
+- Stay strictly within the L'Oréal brand portfolio (owned or licensed). Treat sub-brands as L'Oréal brands.
+- The following brands are in scope (based on our catalog): CeraVe; La Roche-Posay; Vichy; L'Oréal Paris; Maybelline; Lancôme; Garnier; Kiehl's; Kérastase; SkinCeuticals; Urban Decay; Yves Saint Laurent (YSL Beauty); Redken.
+- If asked about non-L'Oréal brands or unrelated topics (e.g., coding, finance, politics), politely decline and, when helpful, suggest comparable options from the brands above.
+- Do not provide medical, legal, or diagnostic advice — recommend consulting a professional instead.
+
+Assistant behavior:
+- Ask clarifying questions about skin type, hair type, concerns, sensitivities, routine complexity, and budget when needed.
+- Keep answers friendly, factual, concise, and, when relevant, include product names and recommended usage steps.`;
 
 // Cloudflare Worker endpoint (proxy to OpenAI) — hides API key
 const WORKER_URL = "https://loreal-chatbot-worker.pmackmurphy.workers.dev/";
@@ -558,3 +569,123 @@ chatForm.addEventListener("submit", async (e) => {
 
 // Initial empty render to ensure chatWindow is cleared
 renderChat();
+
+/* ===================== Generate Routine Button Logic ===================== */
+const generateRoutineBtn = document.getElementById("generateRoutine");
+
+// Event listener for the Generate Routine button
+generateRoutineBtn.addEventListener("click", async () => {
+  // Check if any products are selected
+  if (selectedProducts.length === 0) {
+    alert("Please select at least one product to generate a routine.");
+    return;
+  }
+
+  // Build the user prompt with selected products (brand + product name)
+  const productList = selectedProducts
+    .map((product) => `${product.brand} ${product.name}`)
+    .join(", ");
+
+  const userPrompt = `Generate a personalized beauty routine using the following products: ${productList}.`;
+
+  // Add user message to chat history
+  chatHistory.push({ role: "user", content: userPrompt });
+  renderChat();
+
+  // Disable input and button during API call
+  userInput.disabled = true;
+  sendBtn.disabled = true;
+  generateRoutineBtn.disabled = true;
+
+  // Add thinking indicator
+  chatHistory.push({
+    role: "assistant",
+    content: "Preparing a *fabulous* response just for you...",
+  });
+  renderChat();
+
+  // Remove thinking indicator
+  chatHistory = chatHistory.filter(
+    (m) =>
+      !(
+        m.role === "assistant" &&
+        m.content === "Preparing a *fabulous* response just for you..."
+      )
+  );
+
+  // Build detailed product information for the AI
+  const productDetails = selectedProducts.map((product) => ({
+    name: product.name,
+    brand: product.brand,
+    category: product.category,
+    description: product.description,
+  }));
+
+  // Create enhanced system prompt for routine generation with brand guardrails
+  const routineSystemPrompt = `You are an official L'Oréal product assistant specializing in creating personalized beauty routines.
+
+Rules:
+- Only produce routines related to beauty (skincare, haircare, makeup, fragrance, suncare, grooming) and only using L'Oréal portfolio brands.
+- In-scope brands: CeraVe; La Roche-Posay; Vichy; L'Oréal Paris; Maybelline; Lancôme; Garnier; Kiehl's; Kérastase; SkinCeuticals; Urban Decay; Yves Saint Laurent (YSL Beauty); Redken. Treat sub-brands as L'Oréal.
+- If any provided item is outside these brands or unrelated to beauty, exclude it and briefly state why.
+- Do not give medical, legal, or diagnostic advice — recommend consulting a professional.
+
+When given a list of products, create a step-by-step routine that:
+1. Orders products logically (e.g., cleanse → treat → moisturize → protect)
+2. Explains when to use each (AM/PM/both)
+3. Provides brief application tips (how much, layering order, frequency)
+4. Calls out key benefits of each product
+Keep the routine practical, easy to follow, and tailored to the specific products provided.`;
+
+  // Prepare messages with product details
+  const routineMessages = [
+    { role: "system", content: routineSystemPrompt },
+    {
+      role: "user",
+      content: `Create a personalized routine using these products:\n\n${productDetails
+        .map(
+          (p) => `**${p.brand} ${p.name}** (${p.category})\n${p.description}`
+        )
+        .join("\n\n")}`,
+    },
+  ];
+
+  // Call OpenAI API
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: routineMessages,
+        temperature: 0.7,
+        max_tokens: 1500,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Request failed (${res.status})`);
+    }
+
+    const data = await res.json();
+    const assistantContent =
+      data.choices?.[0]?.message?.content ??
+      "Sorry, I did not receive a reply.";
+
+    // Add AI response to chat history
+    chatHistory.push({ role: "assistant", content: assistantContent });
+    renderChat({ scrollTo: "lastUserTop" });
+  } catch (err) {
+    chatHistory.push({
+      role: "assistant",
+      content: `Error: ${err.message}. Please try again.`,
+    });
+    renderChat();
+  } finally {
+    // Re-enable inputs
+    userInput.disabled = false;
+    sendBtn.disabled = false;
+    generateRoutineBtn.disabled = false;
+    userInput.focus();
+  }
+});
