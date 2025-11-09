@@ -283,7 +283,7 @@ if (modalCloseBtn) {
 }
 
 /* ===================== Chatbot Inner Workings (from previous project) ===================== */
-// System prompt refined to explicitly include L'Oréal portfolio brands and scope limitations
+// System prompt refined to include L'Oréal brands, scope limits, and explicit follow-up behavior
 const SYSTEM_PROMPT = `You are an official L'Oréal product assistant.
 
 Scope and limitations:
@@ -293,15 +293,185 @@ Scope and limitations:
 - If asked about non-L'Oréal brands or unrelated topics (e.g., coding, finance, politics), politely decline and, when helpful, suggest comparable options from the brands above.
 - Do not provide medical, legal, or diagnostic advice — recommend consulting a professional instead.
 
+Conversation memory and follow-ups:
+- Use the full conversation history to maintain context and continuity.
+- Do not re-ask for details the user already provided (e.g., skin type, hair type, concerns). Infer from prior messages and profile first; only ask concise questions for missing info.
+- After a routine is generated, answer follow-up questions ONLY if they relate to the generated routine or beauty topics.
+- Reference previously selected products and the routine you provided when helpful. If a user asks something out of scope, briefly decline and redirect to relevant beauty topics or L'Oréal alternatives.
+
 Assistant behavior:
 - Ask clarifying questions about skin type, hair type, concerns, sensitivities, routine complexity, and budget when needed.
-- Keep answers friendly, factual, concise, and, when relevant, include product names and recommended usage steps.`;
+- Keep answers friendly, factual, concise, and, when relevant, include product names and recommended usage steps.
+- Prefer step-by-step guidance and practical tips. Avoid repeating the entire routine unless asked.`;
 
 // Cloudflare Worker endpoint (proxy to OpenAI) — hides API key
 const WORKER_URL = "https://loreal-chatbot-worker.pmackmurphy.workers.dev/";
 
 // Conversation history (no initial greeting per current project requirement)
 let chatHistory = [];
+
+// Optional: lightweight user profile memory (persisted locally if present)
+let userProfile = loadUserProfile();
+
+function loadUserProfile() {
+  try {
+    const raw = localStorage.getItem("userProfile");
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveUserProfile(profile) {
+  try {
+    localStorage.setItem("userProfile", JSON.stringify(profile));
+  } catch (e) {
+    // ignore storage failures silently
+  }
+}
+
+function formatProfileForPrompt(p = {}) {
+  const parts = [];
+  if (p.name) parts.push(`name=${p.name}`);
+  if (p.skinType) parts.push(`skinType=${p.skinType}`);
+  if (p.hairType) parts.push(`hairType=${p.hairType}`);
+  if (Array.isArray(p.concerns) && p.concerns.length)
+    parts.push(`concerns=${p.concerns.join("/")}`);
+  if (Array.isArray(p.sensitivities) && p.sensitivities.length)
+    parts.push(`sensitivities=${p.sensitivities.join("/")}`);
+  if (p.budget) parts.push(`budget=${p.budget}`);
+  if (p.fragrancePreference) parts.push(`fragrance=${p.fragrancePreference}`);
+  return parts.join("; ");
+}
+
+// Lightweight extraction of profile hints from free text
+function updateProfileFromUserText(text) {
+  if (!text) return;
+  const t = text.toLowerCase();
+
+  // skin type
+  const skinMap = [
+    { key: "oily", value: "oily" },
+    { key: "dry", value: "dry" },
+    { key: "combination", value: "combination" },
+    { key: "combo", value: "combination" },
+    { key: "normal", value: "normal" },
+    { key: "sensitive", value: "sensitive" },
+  ];
+  if (!userProfile.skinType) {
+    for (const s of skinMap) {
+      if (
+        t.includes(`${s.key} skin`) ||
+        t.includes(`skin is ${s.key}`) ||
+        t.includes(`my skin is ${s.key}`)
+      ) {
+        userProfile.skinType = s.value;
+        break;
+      }
+    }
+  }
+
+  // hair type
+  const hairMap = [
+    { key: "straight", value: "straight" },
+    { key: "wavy", value: "wavy" },
+    { key: "curly", value: "curly" },
+    { key: "coily", value: "coily" },
+    { key: "fine", value: "fine" },
+    { key: "thick", value: "thick" },
+  ];
+  if (!userProfile.hairType) {
+    for (const h of hairMap) {
+      if (
+        t.includes(`${h.key} hair`) ||
+        t.includes(`hair is ${h.key}`) ||
+        t.includes(`my hair is ${h.key}`)
+      ) {
+        userProfile.hairType = h.value;
+        break;
+      }
+    }
+  }
+
+  // concerns
+  const concernTerms = [
+    "acne",
+    "breakouts",
+    "pimples",
+    "redness",
+    "hyperpigmentation",
+    "dark spots",
+    "uneven tone",
+    "wrinkles",
+    "fine lines",
+    "texture",
+    "large pores",
+    "oiliness",
+    "dryness",
+    "dullness",
+    "frizz",
+    "dandruff",
+    "hair loss",
+  ];
+  userProfile.concerns = Array.isArray(userProfile.concerns)
+    ? userProfile.concerns
+    : [];
+  for (const term of concernTerms) {
+    if (t.includes(term)) {
+      if (!userProfile.concerns.includes(term)) {
+        userProfile.concerns.push(term);
+      }
+    }
+  }
+
+  // sensitivities and fragrance preference
+  if (!userProfile.fragrancePreference) {
+    if (t.includes("fragrance-free") || t.includes("unscented")) {
+      userProfile.fragrancePreference = "fragrance-free";
+    } else if (
+      t.includes("lightly fragranced") ||
+      t.includes("ok with fragrance")
+    ) {
+      userProfile.fragrancePreference = "light fragrance ok";
+    }
+  }
+
+  userProfile.sensitivities = Array.isArray(userProfile.sensitivities)
+    ? userProfile.sensitivities
+    : [];
+  if (t.includes("sensitive to")) {
+    // naive capture after "sensitive to"
+    const m = t.match(/sensitive to\s+([a-z\-\s]+)/);
+    if (m && m[1]) {
+      const item = m[1].trim().split(/[\.,!]/)[0];
+      if (item && !userProfile.sensitivities.includes(item)) {
+        userProfile.sensitivities.push(item);
+      }
+    }
+  }
+
+  // budget hints
+  if (!userProfile.budget) {
+    if (
+      t.includes("on a budget") ||
+      t.includes("affordable") ||
+      t.includes("drugstore")
+    ) {
+      userProfile.budget = "$";
+    } else if (t.includes("mid-range") || t.includes("midrange")) {
+      userProfile.budget = "$$";
+    } else if (
+      t.includes("luxury") ||
+      t.includes("high-end") ||
+      t.includes("high end")
+    ) {
+      userProfile.budget = "$$$";
+    }
+  }
+
+  // persist after updates
+  saveUserProfile(userProfile);
+}
 
 /* -------- Markdown + HTML escaping helpers (ported) -------- */
 function escapeHtml(text) {
@@ -502,7 +672,16 @@ function renderChat({ scrollTo } = {}) {
 
 /* -------- Call OpenAI via Worker -------- */
 async function callOpenAI() {
-  const messages = [{ role: "system", content: SYSTEM_PROMPT }, ...chatHistory];
+  const messages = [{ role: "system", content: SYSTEM_PROMPT }];
+  if (userProfile && Object.keys(userProfile).length) {
+    messages.push({
+      role: "system",
+      content: `User profile: ${formatProfileForPrompt(
+        userProfile
+      )}. Use this to tailor answers and remember during this session.`,
+    });
+  }
+  messages.push(...chatHistory);
   try {
     const res = await fetch(WORKER_URL, {
       method: "POST",
@@ -541,6 +720,9 @@ chatForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const text = userInput.value.trim();
   if (!text) return;
+
+  // Attempt to capture profile hints from the user's message (e.g., "oily skin")
+  updateProfileFromUserText(text);
 
   chatHistory.push({ role: "user", content: text });
   renderChat();
@@ -640,17 +822,21 @@ When given a list of products, create a step-by-step routine that:
 Keep the routine practical, easy to follow, and tailored to the specific products provided.`;
 
   // Prepare messages with product details
-  const routineMessages = [
-    { role: "system", content: routineSystemPrompt },
-    {
-      role: "user",
-      content: `Create a personalized routine using these products:\n\n${productDetails
-        .map(
-          (p) => `**${p.brand} ${p.name}** (${p.category})\n${p.description}`
-        )
-        .join("\n\n")}`,
-    },
-  ];
+  const routineMessages = [{ role: "system", content: routineSystemPrompt }];
+  if (userProfile && Object.keys(userProfile).length) {
+    routineMessages.push({
+      role: "system",
+      content: `User profile: ${formatProfileForPrompt(
+        userProfile
+      )}. Tailor routine to this context when relevant.`,
+    });
+  }
+  routineMessages.push({
+    role: "user",
+    content: `Create a personalized routine using these products:\n\n${productDetails
+      .map((p) => `**${p.brand} ${p.name}** (${p.category})\n${p.description}`)
+      .join("\n\n")}`,
+  });
 
   // Call OpenAI API
   try {
