@@ -577,7 +577,9 @@ const generateRoutineBtn = document.getElementById("generateRoutine");
 generateRoutineBtn.addEventListener("click", async () => {
   // Check if any products are selected
   if (selectedProducts.length === 0) {
-    alert("Please select at least one product to generate a routine.");
+    // Update the placeholder message to show error
+    const selectedList = document.getElementById("selectedProductsList");
+    selectedList.innerHTML = `<div class="placeholder-message" style="color: #ff003b;">Please select at least one product to generate a routine</div>`;
     return;
   }
 
@@ -622,7 +624,7 @@ generateRoutineBtn.addEventListener("click", async () => {
   }));
 
   // Create enhanced system prompt for routine generation with brand guardrails
-  const routineSystemPrompt = `You are an official L'Oréal product assistant specializing in creating personalized beauty routines.
+  const routineSystemPrompt = `You are an official L'Oréal product assistant specializing in creating and providing personalized beauty routines, beauty advice, and tailored answers for beauty-related questions.
 
 Rules:
 - Only produce routines related to beauty (skincare, haircare, makeup, fragrance, suncare, grooming) and only using L'Oréal portfolio brands.
