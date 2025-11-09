@@ -185,9 +185,9 @@ function openProductModal(product, triggerEl) {
       "aria-disabled",
       isAlreadySelected ? "true" : "false"
     );
-    modalAddBtn.querySelector("span").textContent = isAlreadySelected
-      ? "Already Selected"
-      : "Add";
+    // Keep the label consistent as "Add"; rely on disabled state + CSS for UX
+    const labelSpan = modalAddBtn.querySelector("span");
+    if (labelSpan) labelSpan.textContent = "Add";
 
     // Bind click (overwrite previous to avoid stacking listeners)
     modalAddBtn.onclick = () => {
