@@ -40,22 +40,41 @@ body {
 .search-section {
   margin: 30px 0;
   display: flex;
+  position: relative;
 }
 
 .search-section select {
   width: 100%;
   padding: 16px;
+  padding-right: 48px; /* make room for custom icon (16px padding + 18px icon + 14px gap) */
   font-size: 18px;
   border: 2px solid #000;
   border-radius: 8px;
   cursor: pointer;
   background-color: white;
   font-weight: 500;
+  appearance: none; /* remove default browser dropdown arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .search-section select:focus {
   outline: none;
   border-color: #666;
+}
+
+/* Custom dropdown icon */
+.search-section::after {
+  content: "\f078"; /* Font Awesome chevron-down */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  position: absolute;
+  right: 16px; /* match horizontal padding */
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px; /* match icon sizes on other buttons */
+  color: #000;
+  pointer-events: none; /* allow clicks to pass through to select */
 }
 
 /* chat section */
@@ -116,6 +135,7 @@ body {
   background: #000;
   color: #fff;
   border: none;
+  border-radius: 8px;
   padding: 12px;
   width: 48px;
   height: 48px;
@@ -627,7 +647,7 @@ body.modal-open {
 }
 
 .modal-add-btn:hover {
-  background: #333;
+  background: #666666;
 }
 
 .modal-add-btn:active {
