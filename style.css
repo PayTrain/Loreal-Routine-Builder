@@ -254,12 +254,12 @@ body {
 }
 
 .product-card.selected {
-  border: 2.5px solid #000;
-  box-shadow: 0 0 0 3px #e6e6e6;
-  background: #f5f5f5;
+  border: 2.5px solid #e3a535;
+  box-shadow: 0 0 0 3px #fdf5e6;
+  background: #fffbf3;
   box-sizing: border-box;
   /* Use outline for border outside padding */
-  outline: 1.5px solid #000;
+  outline: 1.5px solid #e3a535;
   border: 1px solid #ccc; /* fallback for non-selected */
 }
 
@@ -267,7 +267,7 @@ body {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: #000;
+  background: #e3a535;
   color: #fff;
   border-radius: 50%;
   width: 18px;
@@ -276,7 +276,7 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(227, 165, 53, 0.3);
   z-index: 2;
   pointer-events: none;
 }
@@ -330,6 +330,18 @@ body {
 .product-card .info-btn:focus {
   outline: 1.2px solid #000;
   outline-offset: 2px;
+}
+
+/* info button styling when product is selected */
+.product-card.selected .info-btn {
+  border-color: #e3a535;
+  color: #715013;
+}
+
+.product-card.selected .info-btn:hover {
+  background: #e3a535;
+  color: #fff;
+  border-color: #e3a535;
 }
 
 /* selected products */
@@ -420,7 +432,7 @@ body {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: #000;
+  background: #ff003b;
   color: #fff;
   border: none;
   width: 18px;
@@ -436,12 +448,12 @@ body {
 }
 
 .selected-card .remove-selected:hover {
-  background: #666;
+  background: #cc0030;
   transform: scale(1.07);
 }
 
 .selected-card .remove-selected:focus {
-  outline: 2px solid #000;
+  outline: 2px solid #ff003b;
   outline-offset: 2px;
 }
 
@@ -697,7 +709,7 @@ body.modal-open {
   height: 28px;
   border-radius: 50%;
   border: none;
-  background: #000;
+  background: #ff003b;
   color: #fff;
   cursor: pointer;
   display: flex;
@@ -706,11 +718,11 @@ body.modal-open {
 }
 
 .modal-close:hover {
-  background: #666;
+  background: #cc0030;
 }
 
 .modal-close:focus {
-  outline: 2px solid #000;
+  outline: 2px solid #ff003b;
   outline-offset: 2px;
 }
 
