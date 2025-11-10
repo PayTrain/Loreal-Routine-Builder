@@ -126,8 +126,8 @@ body {
   pointer-events: none; /* allow clicks to pass through to select */
 }
 
-/* Responsive: stack on smaller screens */
-@media (max-width: 650px) {
+/* Responsive: stack on smaller screens (Bootstrap md: <768px) */
+@media (max-width: 767.98px) {
   .search-section {
     flex-direction: column;
   }
@@ -289,7 +289,8 @@ body {
 }
 
 .product-card {
-  flex: 0 1 calc(33.333% - 14px);
+  /* Keep 3 columns until <768px; subtract 1px to avoid fractional rounding overflow */
+  flex: 0 0 calc((100% - 40px) / 3 - 1px);
   border: 1px solid #ccc;
   padding: 35px 15px;
   border-radius: 4px;
@@ -297,6 +298,7 @@ body {
   gap: 15px;
   min-height: 160px;
   position: relative; /* Needed for checkmark overlay */
+  min-width: 0; /* allow content to shrink without forcing wrap */
 }
 
 .product-card.selected {
@@ -332,6 +334,7 @@ body {
   height: 110px;
   object-fit: contain;
   flex-shrink: 0;
+  transition: width 0.25s ease, height 0.25s ease;
 }
 
 .product-card .product-info {
@@ -368,9 +371,10 @@ body {
 }
 
 .product-card .info-btn:hover {
-  background: #666;
+  /* Gradient fill and simulated gradient border via layered backgrounds */
+  border-color: transparent;
+  background: var(--brand-grad) padding-box, var(--brand-grad) border-box;
   color: #fff;
-  border-color: #666;
 }
 
 .product-card .info-btn:focus {
@@ -385,9 +389,9 @@ body {
 }
 
 .product-card.selected .info-btn:hover {
-  background: #e3a535;
+  border-color: transparent;
+  background: var(--brand-grad) padding-box, var(--brand-grad) border-box;
   color: #fff;
-  border-color: #e3a535;
 }
 
 /* selected products */
@@ -516,23 +520,53 @@ body {
   outline-offset: 2px;
 }
 
-/* responsive adjustments - maintain same gap across all breakpoints */
-@media (max-width: 900px) {
+/* responsive adjustments - maintain same gap across all breakpoints (Bootstrap lg: <992px) */
+@media (max-width: 991.98px) {
   .selected-card {
     /* 3 per row: (100% - 2*16px) / 3 = calc((100% - 32px) / 3) */
     flex: 0 0 calc((100% - 32px) / 3);
   }
 }
-@media (max-width: 650px) {
+@media (max-width: 767.98px) {
   .selected-card {
     /* 2 per row: (100% - 1*16px) / 2 = calc((100% - 16px) / 2) */
     flex: 0 0 calc((100% - 16px) / 2);
   }
 }
-@media (max-width: 420px) {
+@media (max-width: 575.98px) {
   .selected-card {
     /* 1 per row: takes full width, no gap calculation needed */
     flex: 0 0 100%;
+  }
+}
+
+/* Product card responsive widths (align to Bootstrap breakpoints) */
+@media (max-width: 767.98px) {
+  /* md */
+  .product-card {
+    /* Still 2 columns at md-down for readability */
+    flex: 0 0 calc((100% - 20px) / 2);
+  }
+}
+@media (max-width: 575.98px) {
+  /* sm */
+  .product-card {
+    /* Single column */
+    flex: 0 0 100%;
+  }
+}
+
+/* Slightly reduce card padding & image size between ~large and md to prevent premature wrapping */
+@media (max-width: 850px) and (min-width: 768px) {
+  .product-card {
+    padding: 28px 12px; /* narrower horizontal padding to reduce intrinsic width */
+  }
+  .product-card img {
+    width: 90px;
+    height: 90px;
+  }
+  .product-card h3 {
+    font-size: 15px; /* minor reduction keeps text from widening card */
   }
 }
 
@@ -696,8 +730,8 @@ body {
   font-size: 0.9rem;
 }
 
-/* Mobile chat bubbles - full width on small screens */
-@media (max-width: 575px) {
+/* Mobile chat bubbles - full width on small screens (Bootstrap sm: <576px) */
+@media (max-width: 575.98px) {
   .chat-message .message-body {
     max-width: 100%;
   }
@@ -824,7 +858,9 @@ body.modal-open {
 }
 
 .modal-add-btn:hover {
-  background: #666666;
+  background: var(--brand-grad);
+  color: #fff;
+  border: none; /* preserve no border */
 }
 
 .modal-add-btn:active {
