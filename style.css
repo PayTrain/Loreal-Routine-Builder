@@ -36,15 +36,40 @@ body {
   margin-bottom: 10px;
 }
 
-/* category filter */
+/* search and category filter section */
 .search-section {
   margin: 30px 0;
   display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
   position: relative;
 }
 
-.search-section select {
-  width: 100%;
+/* search bar */
+#searchBar {
+  flex: 1 1 300px;
+  padding: 16px;
+  font-size: 18px;
+  border: 2px solid #000;
+  border-radius: 8px;
+  background-color: white;
+  font-weight: 400;
+  transition: border-color 0.25s;
+}
+
+#searchBar:focus {
+  outline: none;
+  border-color: #666;
+}
+
+#searchBar::placeholder {
+  color: #999;
+  font-weight: 400;
+}
+
+/* category select wrapper for dropdown icon positioning */
+#categoryFilter {
+  flex: 0 1 280px;
   padding: 16px;
   padding-right: 48px; /* make room for custom icon (16px padding + 18px icon + 14px gap) */
   font-size: 18px;
@@ -58,12 +83,12 @@ body {
   -moz-appearance: none;
 }
 
-.search-section select:focus {
+#categoryFilter:focus {
   outline: none;
   border-color: #666;
 }
 
-/* Custom dropdown icon */
+/* Custom dropdown icon positioned after the select element */
 .search-section::after {
   content: "\f078"; /* Font Awesome chevron-down */
   font-family: "Font Awesome 6 Free";
@@ -72,9 +97,28 @@ body {
   right: 16px; /* match horizontal padding */
   top: 50%;
   transform: translateY(-50%);
-  font-size: 18px; /* match icon sizes on other buttons */
+  font-size: 18px;
   color: #000;
   pointer-events: none; /* allow clicks to pass through to select */
+}
+
+/* Responsive: stack on smaller screens */
+@media (max-width: 650px) {
+  .search-section {
+    flex-direction: column;
+  }
+
+  #searchBar,
+  #categoryFilter {
+    flex: 1 1 100%;
+  }
+
+  /* Adjust icon position when stacked */
+  .search-section::after {
+    top: calc(
+      50% + 72px
+    ); /* Position relative to second item when stacked (input height + gap) */
+  }
 }
 
 /* chat section */
@@ -301,6 +345,20 @@ body {
   margin-bottom: 20px;
 }
 
+/* Title row with right-aligned Clear All button */
+.selected-title-row {
+  display: flex;
+  align-items: center; /* vertically center button with first line of h2 */
+  gap: 14px; /* space between title and button */
+  margin-bottom: 20px;
+}
+
+.selected-title-row h2 {
+  flex: 1;
+  margin: 0; /* remove bottom margin since row handles spacing */
+  font-size: 20px;
+}
+
 #selectedProductsList {
   display: flex;
   flex-wrap: wrap;
@@ -429,6 +487,40 @@ body {
   margin-right: 8px;
 }
 
+.clear-all-btn {
+  margin: 0; /* inline with title */
+  width: auto; /* tight to text */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px; /* tighter gap between icon and text */
+  padding: 6px 12px; /* tighter padding around text */
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid #ff003b; /* Red border for ghost button */
+  background: transparent; /* Transparent background for ghost style */
+  color: #ff003b; /* Red text */
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+    transform 0.1s ease;
+}
+
+.clear-all-btn:hover {
+  background: #ff003b; /* Fill with red on hover */
+  color: #fff; /* White text on hover */
+  border-color: #ff003b;
+}
+
+.clear-all-btn:active {
+  transform: translateY(1px);
+}
+
+.clear-all-btn:focus {
+  outline: 2px solid #ff003b;
+  outline-offset: 2px;
+}
+
 /* ================= Chat Bubble Styling (added from previous project) ================= */
 /* These styles create distinct user/assistant bubbles without altering the existing
    chat-window container's outward appearance. */
@@ -468,12 +560,14 @@ body {
 .chat-message.user .message-body {
   background: #000;
   color: #fff;
+  border-radius: 12px 12px 4px 12px; /* tail effect on bottom-right */
 }
 
 .chat-message.assistant .message-body {
   background: #ffffff;
   border: 1px solid #e6e6e6;
   color: #000000;
+  border-radius: 12px 12px 12px 4px; /* tail effect on bottom-left */
 }
 
 /* Markdown lists & headings inside bubbles */
@@ -524,6 +618,13 @@ body {
 }
 .message-body h6 {
   font-size: 0.9rem;
+}
+
+/* Mobile chat bubbles - full width on small screens */
+@media (max-width: 575px) {
+  .chat-message .message-body {
+    max-width: 100%;
+  }
 }
 
 /* ================= Modal (Product Details) ================= */
@@ -592,8 +693,8 @@ body.modal-open {
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: none;
   background: #000;

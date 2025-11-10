@@ -1,5 +1,6 @@
 /* ===================== Product Listing Logic (unchanged outward behavior) ===================== */
 const categoryFilter = document.getElementById("categoryFilter");
+const searchBar = document.getElementById("searchBar");
 const productsContainer = document.getElementById("productsContainer");
 const chatForm = document.getElementById("chatForm");
 const chatWindow = document.getElementById("chatWindow");
@@ -25,16 +26,52 @@ productsContainer.innerHTML = `
   </div>
 `;
 
+// Store all products globally for filtering
+let allProducts = [];
+// Track current filter state
+let currentCategory = "";
+let currentSearchQuery = "";
+
 async function loadProducts() {
   const response = await fetch("products.json");
   const data = await response.json();
   return data.products;
 }
 
+// Initialize products on page load
+async function initializeProducts() {
+  allProducts = await loadProducts();
+}
+
 // Track selected products by id
 let selectedProducts = [];
 // Cache of the products currently shown in the grid for instant re-render
 let lastDisplayedProducts = [];
+
+// Load selected products from localStorage on page load
+function loadSelectedProducts() {
+  try {
+    const saved = localStorage.getItem("selectedProducts");
+    if (saved) {
+      selectedProducts = JSON.parse(saved);
+    }
+  } catch (error) {
+    console.error("Error loading selected products:", error);
+    selectedProducts = [];
+  }
+}
+
+// Save selected products to localStorage
+function saveSelectedProducts() {
+  try {
+    localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
+  } catch (error) {
+    console.error("Error saving selected products:", error);
+  }
+}
+
+// Initialize selected products from localStorage
+loadSelectedProducts();
 
 function displayProducts(products) {
   // cache reference for immediate refreshes (e.g., when removing via Selected section)
@@ -76,6 +113,8 @@ function displayProducts(products) {
       } else {
         selectedProducts.push(product);
       }
+      // Save to localStorage whenever selection changes
+      saveSelectedProducts();
       displayProducts(products);
       updateSelectedProducts();
     });
@@ -96,10 +135,22 @@ function displayProducts(products) {
 
 function updateSelectedProducts() {
   const selectedList = document.getElementById("selectedProductsList");
+  const clearAllBtn = document.getElementById("clearAllBtn");
+
   if (!selectedProducts.length) {
     selectedList.innerHTML = `<div class="placeholder-message">No products selected</div>`;
+    // Hide the Clear All button when no products are selected
+    if (clearAllBtn) {
+      clearAllBtn.style.display = "none";
+    }
     return;
   }
+
+  // Show the Clear All button when products are selected
+  if (clearAllBtn) {
+    clearAllBtn.style.display = "inline-flex";
+  }
+
   // Build uniform card elements for selected products
   selectedList.innerHTML = selectedProducts
     .map((product) => {
@@ -122,6 +173,8 @@ function updateSelectedProducts() {
       const card = btn.closest(".selected-card");
       const id = card.getAttribute("data-id");
       selectedProducts = selectedProducts.filter((p) => p.id != id);
+      // Save to localStorage after removing a product
+      saveSelectedProducts();
       // Immediately refresh the products grid using cached results (no fetch delay)
       if (lastDisplayedProducts && lastDisplayedProducts.length) {
         displayProducts(lastDisplayedProducts);
@@ -131,17 +184,174 @@ function updateSelectedProducts() {
   });
 }
 
-categoryFilter.addEventListener("change", async (e) => {
-  const products = await loadProducts();
-  const selectedCategory = e.target.value;
-  const filteredProducts = products.filter(
-    (product) => product.category === selectedCategory
-  );
-  displayProducts(filteredProducts);
+/* ===================== Fuzzy Search Logic ===================== */
+// Define keyword synonyms and related terms for smart fuzzy matching
+const searchSynonyms = {
+  // Skincare terms
+  moisturizer: [
+    "lotion",
+    "cream",
+    "hydrating",
+    "hydration",
+    "moisture",
+    "nourishing",
+  ],
+  serum: ["treatment", "concentrate", "booster", "essence"],
+  cleanser: ["wash", "cleansing", "facial wash", "face wash", "makeup remover"],
+  sunscreen: ["spf", "sun protection", "suncare", "uv protection"],
+  retinol: ["anti-aging", "anti aging", "wrinkle", "fine lines"],
+  "vitamin c": ["brightening", "radiance", "glow", "luminous"],
+  exfoliate: ["scrub", "polish", "resurface", "renew", "peel"],
+
+  // Hair terms
+  shampoo: ["hair wash", "cleansing"],
+  conditioner: ["hair treatment", "detangler"],
+  hairspray: ["hair spray", "finishing spray", "hold spray"],
+
+  // Makeup terms
+  foundation: ["base", "coverage", "complexion"],
+  mascara: ["lashes", "eye makeup"],
+  lipstick: ["lip color", "lip balm", "rouge"],
+  eyeshadow: ["eye shadow", "palette", "eye makeup"],
+
+  // Skin types and concerns
+  acne: ["breakout", "blemish", "pimple", "spot treatment"],
+  sensitive: ["gentle", "soothing", "calming", "hypoallergenic"],
+  oily: ["oil control", "mattifying", "shine control"],
+  dry: ["hydrating", "nourishing", "replenishing"],
+  aging: ["wrinkle", "firming", "lifting", "youth"],
+};
+
+// Helper function to get all related terms for a word
+function getRelatedTerms(word) {
+  const lowerWord = word.toLowerCase();
+  const terms = [lowerWord];
+
+  // Check if word is a key in synonyms
+  if (searchSynonyms[lowerWord]) {
+    terms.push(...searchSynonyms[lowerWord]);
+  }
+
+  // Check if word appears in any synonym array
+  for (const [key, values] of Object.entries(searchSynonyms)) {
+    if (values.includes(lowerWord)) {
+      terms.push(key, ...values);
+    }
+  }
+
+  return [...new Set(terms)]; // Remove duplicates
+}
+
+// Smart fuzzy search matching function
+function matchesSearchQuery(product, query) {
+  if (!query || query.trim() === "") return true;
+
+  // Normalize query to lowercase
+  const normalizedQuery = query.toLowerCase().trim();
+
+  // Split query into words for multi-word search
+  const queryWords = normalizedQuery.split(/\s+/);
+
+  // Create searchable text from product fields
+  const searchableText = [
+    product.name,
+    product.brand,
+    product.description,
+    product.category,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  // Check each query word
+  return queryWords.every((word) => {
+    // Get all related terms for this word (fuzzy matching)
+    const relatedTerms = getRelatedTerms(word);
+
+    // Check if any related term appears in the searchable text
+    return relatedTerms.some((term) => searchableText.includes(term));
+  });
+}
+
+/* ===================== Combined Filter Logic ===================== */
+// Apply both category and search filters together
+function applyFilters() {
+  let filteredProducts = allProducts;
+
+  // Apply category filter if selected
+  if (currentCategory) {
+    filteredProducts = filteredProducts.filter(
+      (product) => product.category === currentCategory
+    );
+  }
+
+  // Apply search filter
+  if (currentSearchQuery) {
+    filteredProducts = filteredProducts.filter((product) =>
+      matchesSearchQuery(product, currentSearchQuery)
+    );
+  }
+
+  // Update display
+  if (filteredProducts.length === 0) {
+    productsContainer.innerHTML = `
+      <div class="placeholder-message">
+        No products match your search. Try different keywords or select a category.
+      </div>
+    `;
+  } else {
+    displayProducts(filteredProducts);
+  }
+}
+
+/* ===================== Event Listeners for Filters ===================== */
+// Category filter event listener
+categoryFilter.addEventListener("change", (e) => {
+  currentCategory = e.target.value;
+  applyFilters();
 });
+
+// Search bar event listener - filters in real time as user types
+searchBar.addEventListener("input", (e) => {
+  currentSearchQuery = e.target.value;
+
+  // If search is active but no category selected, show all products that match search
+  if (currentSearchQuery && !currentCategory) {
+    // Auto-enable searching across all products
+    applyFilters();
+  } else if (currentCategory || currentSearchQuery) {
+    applyFilters();
+  } else {
+    // If both are empty, show placeholder
+    productsContainer.innerHTML = `
+      <div class="placeholder-message">
+        Select a category to view products
+      </div>
+    `;
+  }
+});
+
+// Clear All button functionality
+const clearAllBtn = document.getElementById("clearAllBtn");
+if (clearAllBtn) {
+  clearAllBtn.addEventListener("click", () => {
+    // Clear the selected products array
+    selectedProducts = [];
+    // Save empty array to localStorage
+    saveSelectedProducts();
+    // Refresh the products grid if products are currently displayed
+    if (lastDisplayedProducts && lastDisplayedProducts.length) {
+      displayProducts(lastDisplayedProducts);
+    }
+    // Update the selected products section
+    updateSelectedProducts();
+  });
+}
 
 // Initial update for selected products section
 updateSelectedProducts();
+
+// Initialize products on page load
+initializeProducts();
 
 /* ===================== Accessible Modal: open/close + focus trap ===================== */
 function getFocusableElements(container) {
@@ -194,6 +404,8 @@ function openProductModal(product, triggerEl) {
       const stillSelected = selectedProducts.some((p) => p.id == product.id);
       if (!stillSelected) {
         selectedProducts.push(product);
+        // Save to localStorage after adding a product
+        saveSelectedProducts();
       }
       // Refresh UI
       if (lastDisplayedProducts && lastDisplayedProducts.length) {
@@ -660,10 +872,18 @@ function renderChat({ scrollTo } = {}) {
   });
 
   if (scrollTo === "lastUserTop") {
+    // Find the last user message element and align it to the top of the scroll container
     const userMessages = chatWindow.querySelectorAll(".chat-message.user");
     const lastUser = userMessages[userMessages.length - 1];
     if (lastUser) {
-      chatWindow.scrollTop = lastUser.offsetTop - chatWindow.offsetTop;
+      // Position the last user message slightly below the top of the chat window
+      // using a fixed offset equal to the gap between chat bubbles (margin-bottom: 20px)
+      const OFFSET = 20; // matches the gap between chat bubbles
+      const containerRect = chatWindow.getBoundingClientRect();
+      const lastRect = lastUser.getBoundingClientRect();
+      const deltaTop = lastRect.top - containerRect.top; // distance from top of container
+      const target = Math.max(0, chatWindow.scrollTop + deltaTop - OFFSET);
+      chatWindow.scrollTop = target;
     }
   } else {
     chatWindow.scrollTop = chatWindow.scrollHeight;
