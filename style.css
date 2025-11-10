@@ -5,6 +5,18 @@
   padding: 0;
 }
 
+/* —— brand theme —— */
+:root {
+  --brand-red: #ff003b;
+  --brand-gold: #e3a535;
+  --brand-grad: linear-gradient(90deg, var(--brand-red), var(--brand-gold));
+  --brand-grad-vert: linear-gradient(
+    180deg,
+    var(--brand-red),
+    var(--brand-gold)
+  );
+}
+
 /* —— body + fonts —— */
 body {
   font-family: "Montserrat", Arial, Helvetica, sans-serif;
@@ -34,6 +46,18 @@ body {
   font-size: 22px;
   font-weight: 500;
   margin-bottom: 10px;
+  position: relative;
+}
+
+/* gradient accent bar under main title */
+.site-title::after {
+  content: "";
+  display: block;
+  width: 140px;
+  height: 6px;
+  margin: 12px auto 0;
+  background: var(--brand-grad);
+  border-radius: 999px;
 }
 
 /* search and category filter section */
@@ -52,7 +76,7 @@ body {
   font-size: 18px;
   border: 2px solid #000;
   border-radius: 8px;
-  background-color: white;
+  background-color: #ffffff;
   font-weight: 400;
   transition: border-color 0.25s;
 }
@@ -76,7 +100,7 @@ body {
   border: 2px solid #000;
   border-radius: 8px;
   cursor: pointer;
-  background-color: white;
+  background-color: #ffffff;
   font-weight: 500;
   appearance: none; /* remove default browser dropdown arrow */
   -webkit-appearance: none;
@@ -132,6 +156,18 @@ body {
 .chatbox h2 {
   font-size: 20px;
   margin-bottom: 20px;
+  position: relative;
+}
+
+/* gradient accent bar under chat subtitle */
+.chatbox h2::after {
+  content: "";
+  display: block;
+  width: 100px;
+  height: 4px;
+  margin-top: 10px;
+  background: var(--brand-grad);
+  border-radius: 999px;
 }
 
 .chat-window {
@@ -164,19 +200,24 @@ body {
   flex: 1;
   padding: 12px;
   font-size: 18px;
-  border: none;
-  border-bottom: 2px solid #ccc;
-  background: transparent;
+  border: none; /* draw underline with gradient background */
+  background-color: transparent;
+  background-image: linear-gradient(90deg, var(--brand-red), var(--brand-gold));
+  background-size: 100% 2px;
+  background-position: left bottom;
+  background-repeat: no-repeat;
+  padding-bottom: 10px;
+  transition: background-size 0.2s ease;
 }
 
 .chat-form input:focus {
   outline: none;
-  border-bottom-color: #000;
+  background-size: 100% 3px; /* slightly thicker on focus */
 }
 
 .chat-form button {
   font-size: 18px;
-  background: #000;
+  background: var(--brand-grad);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -187,11 +228,16 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: filter 0.25s ease, transform 0.05s ease;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.65); /* zero-offset, subtle blur for readability */
 }
 
 .chat-form button:hover {
-  background: #666666;
+  filter: brightness(1.05);
+}
+
+.chat-form button:active {
+  transform: translateY(1px);
 }
 
 .chat-form button:focus {
@@ -355,6 +401,7 @@ body {
 .selected-products h2 {
   font-size: 20px;
   margin-bottom: 20px;
+  position: relative;
 }
 
 /* Title row with right-aligned Clear All button */
@@ -369,6 +416,18 @@ body {
   flex: 1;
   margin: 0; /* remove bottom margin since row handles spacing */
   font-size: 20px;
+  position: relative;
+}
+
+/* gradient accent bar under selected products subtitle */
+.selected-title-row h2::after {
+  content: "";
+  display: block;
+  width: 110px;
+  height: 4px;
+  margin-top: 10px;
+  background: var(--brand-grad);
+  border-radius: 999px;
 }
 
 #selectedProductsList {
@@ -484,15 +543,20 @@ body {
   font-size: 18px;
   font-weight: 500;
   color: #fff;
-  background: #000;
+  background: var(--brand-grad);
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: filter 0.25s ease, transform 0.05s ease;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.65); /* zero-offset, subtle blur for readability */
 }
 
 .generate-btn:hover {
-  background: #666;
+  filter: brightness(1.05);
+}
+
+.generate-btn:active {
+  transform: translateY(1px);
 }
 
 .generate-btn i {
