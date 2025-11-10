@@ -140,7 +140,7 @@ body {
   /* Adjust icon position when stacked */
   .search-section::after {
     top: calc(
-      50% + 72px
+      50% + 36px
     ); /* Position relative to second item when stacked (input height + gap) */
   }
 }
@@ -569,7 +569,7 @@ body {
     padding: 28px 12px; /* narrower horizontal padding to reduce intrinsic width */
   }
   .product-card img {
-    width: 90px; /* modest reduction; pairs with 3-col calc to avoid early wrap */
+    width: 73px; /* modest reduction; pairs with 3-col calc to avoid early wrap */
   }
   .product-card h3 {
     font-size: 15px; /* minor reduction keeps text from widening card */
