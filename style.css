@@ -491,7 +491,7 @@ body {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: #ff003b;
+  background: #000; /* base black */
   color: #fff;
   border: none;
   width: 18px;
@@ -507,12 +507,12 @@ body {
 }
 
 .selected-card .remove-selected:hover {
-  background: #cc0030;
+  background: var(--brand-red);
   transform: scale(1.07);
 }
 
 .selected-card .remove-selected:focus {
-  outline: 2px solid #ff003b;
+  outline: 2px solid var(--brand-red);
   outline-offset: 2px;
 }
 
@@ -574,18 +574,18 @@ body {
   font-size: 16px;
   font-weight: 600;
   border-radius: 8px;
-  border: 1px solid #ff003b; /* Red border for ghost button */
-  background: transparent; /* Transparent background for ghost style */
-  color: #ff003b; /* Red text */
+  border: 1px solid #000; /* black base */
+  background: transparent; /* ghost style */
+  color: #000; /* black text base */
   cursor: pointer;
   transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease,
     transform 0.1s ease;
 }
 
 .clear-all-btn:hover {
-  background: #ff003b; /* Fill with red on hover */
-  color: #fff; /* White text on hover */
-  border-color: #ff003b;
+  background: var(--brand-red); /* red fill on hover */
+  color: #fff; /* white text */
+  border-color: var(--brand-red);
 }
 
 .clear-all-btn:active {
@@ -593,7 +593,7 @@ body {
 }
 
 .clear-all-btn:focus {
-  outline: 2px solid #ff003b;
+  outline: 2px solid var(--brand-red);
   outline-offset: 2px;
 }
 
@@ -773,7 +773,7 @@ body.modal-open {
   height: 28px;
   border-radius: 50%;
   border: none;
-  background: #ff003b;
+  background: #000; /* base black */
   color: #fff;
   cursor: pointer;
   display: flex;
@@ -782,11 +782,11 @@ body.modal-open {
 }
 
 .modal-close:hover {
-  background: #cc0030;
+  background: var(--brand-red); /* hover red */
 }
 
 .modal-close:focus {
-  outline: 2px solid #ff003b;
+  outline: 2px solid var(--brand-red);
   outline-offset: 2px;
 }
 
