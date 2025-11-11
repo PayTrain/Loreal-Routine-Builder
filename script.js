@@ -480,6 +480,215 @@ updateSelectedProducts();
 // Initialize products on page load
 initializeProducts();
 
+/* ===================== Custom Dropdown for categoryFilter (panel only) ===================== */
+// Modern custom panel replicating the select's options without altering the select styling itself.
+// Accessibility notes:
+// - We keep the native <select> for semantics and fallback; intercept mouse + some keyboard to show a custom list.
+// - Selection updates dispatch a native 'change' event so existing logic works unmodified.
+(function setupCustomCategoryDropdown() {
+  const selectEl = categoryFilter;
+  if (!selectEl) return;
+
+  let isOpen = false;
+  let activeIndex = -1;
+  let optionNodes = [];
+
+  // Create floating panel container
+  const panel = document.createElement("div");
+  panel.className = "custom-select-dropdown";
+  panel.style.display = "none";
+  panel.setAttribute("role", "listbox");
+  document.body.appendChild(panel);
+
+  function collectOptions() {
+    const arr = [];
+    for (const opt of selectEl.options) {
+      if (opt.disabled) continue; // skip placeholder disabled
+      arr.push({ value: opt.value, label: opt.textContent });
+    }
+    return arr;
+  }
+
+  function renderPanel() {
+    const options = collectOptions();
+    const current = selectEl.value;
+    panel.innerHTML = options
+      .map((o) => {
+        const selected = o.value === current;
+        const selAttr = selected ? ' aria-selected="true"' : "";
+        const check = selected
+          ? '<i class="fa-solid fa-check checkmark" aria-hidden="true"></i>'
+          : "";
+        return `<div class="dropdown-option" role="option" data-value="${o.value}"${selAttr}>${o.label}${check}</div>`;
+      })
+      .join("");
+    optionNodes = Array.from(panel.querySelectorAll(".dropdown-option"));
+    // Default: no keyboard-highlight on open; keep all options in uniform state
+    // We still track the selected item via aria-selected for styling
+    activeIndex = -1;
+  }
+
+  function positionPanel() {
+    const rect = selectEl.getBoundingClientRect();
+    panel.style.width = rect.width + "px";
+    panel.style.left = rect.left + "px";
+    panel.style.top = rect.bottom + 6 + "px"; // small gap below select
+  }
+
+  function openPanel() {
+    if (isOpen) return;
+    renderPanel();
+    positionPanel();
+    panel.style.display = "block";
+    isOpen = true;
+    highlightActive();
+    addGlobalListeners();
+  }
+
+  function closePanel() {
+    if (!isOpen) return;
+    panel.style.display = "none";
+    isOpen = false;
+    removeGlobalListeners();
+  }
+
+  function selectIndex(i) {
+    if (i < 0 || i >= optionNodes.length) return;
+    const node = optionNodes[i];
+    const value = node.getAttribute("data-value") || "";
+    if (value !== selectEl.value) {
+      selectEl.value = value;
+      selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    closePanel();
+    selectEl.focus();
+  }
+
+  function highlightActive() {
+    optionNodes.forEach((n, idx) => {
+      if (idx === activeIndex) {
+        n.classList.add("hover");
+        // Only attempt to scroll if the panel is actually scrollable
+        if (panel.scrollHeight > panel.clientHeight) {
+          n.scrollIntoView({ block: "nearest" });
+        }
+      } else {
+        n.classList.remove("hover");
+      }
+    });
+  }
+
+  function moveActive(delta) {
+    if (!optionNodes.length) return;
+    if (activeIndex === -1) {
+      // First keyboard move sets an initial index depending on direction
+      activeIndex = delta > 0 ? 0 : optionNodes.length - 1;
+    } else {
+      activeIndex = Math.max(
+        0,
+        Math.min(optionNodes.length - 1, activeIndex + delta)
+      );
+    }
+    highlightActive();
+  }
+
+  function onDocMouseDown(e) {
+    if (!panel.contains(e.target) && !selectEl.contains(e.target)) {
+      closePanel();
+    }
+  }
+
+  function onDocKeyDown(e) {
+    if (!isOpen) return;
+    switch (e.key) {
+      case "Escape":
+        e.preventDefault();
+        closePanel();
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        moveActive(1);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        moveActive(-1);
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (activeIndex === -1) {
+          const selIdx = optionNodes.findIndex(
+            (n) => n.getAttribute("aria-selected") === "true"
+          );
+          selectIndex(selIdx >= 0 ? selIdx : 0);
+        } else {
+          selectIndex(activeIndex);
+        }
+        break;
+    }
+  }
+
+  function onWinResizeScroll() {
+    if (!isOpen) return;
+    positionPanel();
+  }
+
+  function addGlobalListeners() {
+    document.addEventListener("mousedown", onDocMouseDown);
+    document.addEventListener("keydown", onDocKeyDown);
+    window.addEventListener("resize", onWinResizeScroll);
+    window.addEventListener("scroll", onWinResizeScroll, true);
+  }
+  function removeGlobalListeners() {
+    document.removeEventListener("mousedown", onDocMouseDown);
+    document.removeEventListener("keydown", onDocKeyDown);
+    window.removeEventListener("resize", onWinResizeScroll);
+    window.removeEventListener("scroll", onWinResizeScroll, true);
+  }
+
+  // Mouse interaction: replace native panel
+  selectEl.addEventListener("mousedown", (e) => {
+    e.preventDefault(); // prevent native dropdown
+    selectEl.focus();
+    if (isOpen) closePanel();
+    else openPanel();
+  });
+
+  // Keyboard interaction while focus on select
+  selectEl.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (!isOpen) {
+        openPanel();
+      } else if (e.key === "ArrowDown") {
+        moveActive(1);
+      } else if (e.key === "Enter") {
+        if (activeIndex === -1) {
+          const selIdx = optionNodes.findIndex(
+            (n) => n.getAttribute("aria-selected") === "true"
+          );
+          selectIndex(selIdx >= 0 ? selIdx : 0);
+        } else {
+          selectIndex(activeIndex);
+        }
+      }
+    } else if (e.key === "ArrowUp" && isOpen) {
+      e.preventDefault();
+      moveActive(-1);
+    } else if (e.key === "Escape" && isOpen) {
+      e.preventDefault();
+      closePanel();
+    }
+  });
+
+  // Click selection inside panel
+  panel.addEventListener("click", (e) => {
+    const opt = e.target.closest(".dropdown-option");
+    if (!opt) return;
+    const idx = optionNodes.indexOf(opt);
+    if (idx !== -1) selectIndex(idx);
+  });
+})();
+
 /* ===================== Accessible Modal: open/close + focus trap ===================== */
 function getFocusableElements(container) {
   const selectors = [

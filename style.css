@@ -1021,3 +1021,78 @@ body.rtl .modal-close {
   left: 10px;
   right: auto;
 }
+
+/* —— Custom dropdown panel for categoryFilter (modern, on-brand) —— */
+/* Note: we do NOT change the select box itself; this styles only the collapsed list panel */
+.custom-select-dropdown {
+  position: fixed; /* positioned to the viewport using getBoundingClientRect */
+  top: 0;
+  left: 0;
+  width: 280px; /* JS will override to match select width */
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden; /* clip gradient bar and rounded corners; panel grows to fit content */
+  z-index: 400; /* below modal(1000) but above other content */
+  animation: dropdownFade 120ms ease-out;
+}
+
+.custom-select-dropdown::before {
+  content: "";
+  display: block;
+  height: 4px;
+  background: var(--brand-grad);
+}
+
+.custom-select-dropdown .dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  font-size: 16px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.custom-select-dropdown .dropdown-option:hover {
+  background: #fffbf3; /* subtle warm hover */
+}
+
+.custom-select-dropdown .dropdown-option.hover {
+  background: #fffbf3; /* keyboard navigation hover parity */
+}
+
+.custom-select-dropdown .dropdown-option[aria-selected="true"] {
+  background: #fdf5e6; /* selected background */
+  color: #715013; /* complementary gold-ish text */
+}
+
+.custom-select-dropdown .dropdown-option .checkmark {
+  margin-left: auto; /* push to the end of the row */
+  color: #e3a535;
+}
+
+.custom-select-dropdown .dropdown-empty {
+  padding: 14px;
+  color: #666;
+  font-size: 14px;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* RTL tweaks for dropdown layout */
+body.rtl .custom-select-dropdown .dropdown-option .checkmark {
+  margin-left: 0;
+  margin-right: auto;
+}
