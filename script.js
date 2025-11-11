@@ -88,32 +88,6 @@ function refreshDirection() {
   const override = getDirOverride();
   const dir = override || detectAutoDirection();
   applyDirection(dir);
-  updateDirToggleLabel();
-}
-
-// Manual toggle (cycles: auto -> rtl -> ltr -> auto)
-function handleDirToggle() {
-  const override = getDirOverride();
-  let next;
-  if (override === null) next = "rtl";
-  else if (override === "rtl") next = "ltr";
-  else if (override === "ltr") next = null; // back to auto
-  setDirOverride(next);
-  refreshDirection();
-}
-
-function updateDirToggleLabel() {
-  const btn = document.getElementById("dirToggle");
-  if (!btn) return;
-  const override = getDirOverride();
-  const autoDir = detectAutoDirection();
-  if (override === null) {
-    btn.textContent = `Direction: Auto (${autoDir.toUpperCase()})`;
-    btn.setAttribute("aria-pressed", "false");
-  } else {
-    btn.textContent = `Direction: ${override.toUpperCase()} (Manual)`;
-    btn.setAttribute("aria-pressed", "true");
-  }
 }
 
 // Observe html lang attribute & poll for GT cookie changes
@@ -640,11 +614,6 @@ function closeProductModal() {
 
   // Clear current product reference
   currentModalProduct = null;
-}
-
-// Safety: wire up close button if user somehow focuses it before first open
-if (modalCloseBtn) {
-  modalCloseBtn.addEventListener("click", closeProductModal);
 }
 
 /* ===================== Chatbot Inner Workings (from previous project) ===================== */
