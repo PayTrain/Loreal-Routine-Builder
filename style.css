@@ -10,11 +10,6 @@
   --brand-red: #ff003b;
   --brand-gold: #e3a535;
   --brand-grad: linear-gradient(90deg, var(--brand-red), var(--brand-gold));
-  --brand-grad-vert: linear-gradient(
-    180deg,
-    var(--brand-red),
-    var(--brand-gold)
-  );
 }
 
 /* —— body + fonts —— */
@@ -308,7 +303,6 @@ body {
   box-sizing: border-box;
   /* Use outline for border outside padding */
   outline: 1.5px solid #e3a535;
-  border: 1px solid #ccc; /* fallback for non-selected */
 }
 
 .product-card .selected-check {
