@@ -650,6 +650,17 @@ body {
   margin-bottom: 6px;
   color: #666666;
   font-size: 14px;
+  width: 100%; /* allow text-align to position to bubble side */
+}
+
+/* Explicit meta alignment per side (LTR default) */
+.chat-message.user .message-meta {
+  align-self: flex-end;
+  text-align: right;
+}
+.chat-message.assistant .message-meta {
+  align-self: flex-start;
+  text-align: left;
 }
 
 .chat-message.user {
@@ -677,6 +688,7 @@ body {
   background: #000;
   color: #fff;
   border-radius: 12px 12px 4px 12px; /* tail effect on bottom-right */
+  margin-left: auto; /* push bubble to the right in LTR */
 }
 
 .chat-message.assistant .message-body {
@@ -684,17 +696,20 @@ body {
   border: 1px solid #e6e6e6;
   color: #000000;
   border-radius: 12px 12px 12px 4px; /* tail effect on bottom-left */
+  margin-right: auto; /* push bubble to the left in LTR */
 }
 
 /* Markdown lists & headings inside bubbles */
 .message-body ul {
   margin: 0.5rem 0;
   padding-left: 1.4rem;
+  padding-inline-start: 1.4rem; /* logical for RTL */
   list-style-type: disc;
 }
 .message-body ol {
   margin: 0.5rem 0;
   padding-left: 1.6rem; /* slightly more for numbers */
+  padding-inline-start: 1.6rem; /* logical for RTL */
   list-style-type: decimal;
 }
 .message-body li {
@@ -891,3 +906,107 @@ body.modal-open {
   background: #e0e0e0;
   transform: none;
 }
+
+/* ================= RTL Overrides ================= */
+/* These rules activate when body has the .rtl class (set by JS detection). */
+body.rtl {
+  direction: rtl;
+}
+
+/* Search section: move custom chevron to the left and swap padding side */
+body.rtl .search-section::after {
+  left: 16px;
+  right: auto;
+}
+body.rtl #categoryFilter {
+  padding-left: 48px;
+  padding-right: 16px; /* reset to default */
+}
+
+/* Product cards: mirror checkmark position */
+body.rtl .product-card .selected-check {
+  left: 10px;
+  right: auto;
+}
+
+/* Selected cards: mirror remove button */
+body.rtl .selected-card .remove-selected {
+  left: 10px;
+  right: auto;
+}
+
+/* Chat window flows RTL, with right-aligned text by default */
+body.rtl .chat-window {
+  direction: rtl;
+}
+body.rtl .message-body {
+  text-align: right;
+}
+/* Mirror list indentation inside messages */
+body.rtl .message-body ul,
+body.rtl .message-body ol {
+  direction: rtl; /* ensure markers render in RTL flow */
+  padding-inline-start: 1.4rem;
+  padding-inline-end: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  list-style-position: inside; /* keep bullets/numbers close to text for RTL */
+}
+body.rtl .message-body ol {
+  padding-inline-start: 1.6rem; /* numeric list indentation */
+  padding-inline-end: 0;
+}
+body.rtl .message-body ul ul,
+body.rtl .message-body ul ol,
+body.rtl .message-body ol ul,
+body.rtl .message-body ol ol {
+  padding-inline-start: 1.2rem;
+  padding-inline-end: 0;
+}
+
+/* Chat bubble alignment: mirror user/assistant sides */
+body.rtl .chat-message.user {
+  align-items: flex-start;
+}
+body.rtl .chat-message.assistant {
+  align-items: flex-end;
+}
+/* Mirror meta alignment in RTL */
+body.rtl .chat-message.user .message-meta {
+  align-self: flex-start;
+  text-align: left;
+}
+body.rtl .chat-message.assistant .message-meta {
+  align-self: flex-end;
+  text-align: right;
+}
+/* Mirror bubble "tail" corners */
+body.rtl .chat-message.user .message-body {
+  border-radius: 12px 12px 12px 4px; /* tail on bottom-left in RTL */
+  margin-right: auto; /* push bubble to left side in RTL */
+  margin-left: 0;
+}
+body.rtl .chat-message.assistant .message-body {
+  border-radius: 12px 12px 4px 12px; /* tail on bottom-right in RTL */
+  margin-left: auto; /* push bubble to right side in RTL */
+  margin-right: 0;
+}
+
+/* Chat input underline: start from the right in RTL */
+body.rtl .chat-form input {
+  background-position: right bottom;
+}
+
+/* Generate button icon spacing: swap margin side */
+body.rtl .generate-btn i {
+  margin-right: 0;
+  margin-left: 8px;
+}
+
+/* Modal close button on the left in RTL */
+body.rtl .modal-close {
+  left: 10px;
+  right: auto;
+}
+
+/* (removed) Direction toggle button styles */

@@ -7,6 +7,159 @@ const chatWindow = document.getElementById("chatWindow");
 const userInput = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
 
+/* ===================== RTL Detection & Direction Setup (enhanced) ===================== */
+// NOTE: We only persist a manual override (user toggle). Automatic detection is re-evaluated
+// when the html[lang] attribute changes (e.g., via Google Translate) or periodically.
+
+const RTL_LANGS = [
+  "ar",
+  "he",
+  "fa",
+  "ur",
+  "ps",
+  "sd",
+  "ug",
+  "yi",
+  "dv",
+  "ku",
+  "ckb",
+  "ks",
+  "syr",
+  "nqo",
+];
+
+function isRTLLanguageTag(tag = "") {
+  const primary = String(tag).toLowerCase().split("-")[0];
+  return RTL_LANGS.includes(primary);
+}
+
+function getGoogleTranslateLang() {
+  // Primary: html lang attribute
+  const htmlLang = document.documentElement.getAttribute("lang");
+  if (htmlLang) return htmlLang.split("-")[0];
+  // Fallback: cookie set by Google Translate (format: /source/target )
+  const match = document.cookie.match(/googtrans=\/([a-zA-Z-]+)\//);
+  if (match) return match[1].split("-")[0];
+  return "";
+}
+
+function detectAutoDirection() {
+  // 1. Explicit html lang / Google Translate
+  const gtLang = getGoogleTranslateLang();
+  if (gtLang && isRTLLanguageTag(gtLang)) return "rtl";
+  if (gtLang && !isRTLLanguageTag(gtLang)) return "ltr";
+  // 2. Navigator languages
+  const langs = Array.isArray(navigator.languages)
+    ? navigator.languages
+    : [navigator.language || ""];
+  const anyRTL = langs.some(isRTLLanguageTag);
+  return anyRTL ? "rtl" : "ltr";
+}
+
+function applyDirection(dir) {
+  const val = dir === "rtl" ? "rtl" : "ltr";
+  document.documentElement.setAttribute("dir", val);
+  document.body.classList.toggle("rtl", val === "rtl");
+}
+
+function getDirOverride() {
+  try {
+    const o = localStorage.getItem("uiDirOverride");
+    if (o === "rtl" || o === "ltr") return o;
+    return null; // 'auto' or absent => no override
+  } catch (e) {
+    return null;
+  }
+}
+
+function setDirOverride(value) {
+  try {
+    if (value === null || value === "auto") {
+      localStorage.removeItem("uiDirOverride");
+    } else {
+      localStorage.setItem("uiDirOverride", value);
+    }
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+function refreshDirection() {
+  const override = getDirOverride();
+  const dir = override || detectAutoDirection();
+  applyDirection(dir);
+  updateDirToggleLabel();
+}
+
+// Manual toggle (cycles: auto -> rtl -> ltr -> auto)
+function handleDirToggle() {
+  const override = getDirOverride();
+  let next;
+  if (override === null) next = "rtl";
+  else if (override === "rtl") next = "ltr";
+  else if (override === "ltr") next = null; // back to auto
+  setDirOverride(next);
+  refreshDirection();
+}
+
+function updateDirToggleLabel() {
+  const btn = document.getElementById("dirToggle");
+  if (!btn) return;
+  const override = getDirOverride();
+  const autoDir = detectAutoDirection();
+  if (override === null) {
+    btn.textContent = `Direction: Auto (${autoDir.toUpperCase()})`;
+    btn.setAttribute("aria-pressed", "false");
+  } else {
+    btn.textContent = `Direction: ${override.toUpperCase()} (Manual)`;
+    btn.setAttribute("aria-pressed", "true");
+  }
+}
+
+// Observe html lang attribute & poll for GT cookie changes
+let lastGTLang = getGoogleTranslateLang();
+function periodicLangCheck() {
+  const current = getGoogleTranslateLang();
+  if (current !== lastGTLang && getDirOverride() === null) {
+    lastGTLang = current;
+    refreshDirection();
+  }
+}
+setInterval(periodicLangCheck, 1500);
+
+// Attribute observer for html[lang]
+new MutationObserver(() => {
+  if (getDirOverride() === null) refreshDirection();
+}).observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: ["lang"],
+});
+
+// Storage listener (sync across tabs)
+window.addEventListener("storage", (e) => {
+  if (e.key === "uiDirOverride") refreshDirection();
+});
+
+// Initialize direction ASAP (after DOM ready minimal)
+refreshDirection();
+
+// Update placeholder text based on screen size
+function updatePlaceholderText() {
+  if (window.innerWidth <= 575.98) {
+    // Mobile screens (Bootstrap sm breakpoint)
+    userInput.placeholder = "Ask about products…";
+  } else {
+    // Larger screens
+    userInput.placeholder = "Ask me about products or routines…";
+  }
+}
+
+// Initial update
+updatePlaceholderText();
+
+// Update on window resize
+window.addEventListener("resize", updatePlaceholderText);
+
 // Modal elements for product descriptions
 const modal = document.getElementById("productModal");
 const modalContent = modal ? modal.querySelector(".modal-content") : null;

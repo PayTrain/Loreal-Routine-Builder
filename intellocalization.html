@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intel: Sustainability Through the Ages</title>
+  <!-- Include Bootstrap CSS and JS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Bootstrap RTL CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-rtl@5.3.8/dist/css/bootstrap-rtl.min.css" rel="stylesheet" integrity="sha384-rtl" crossorigin="anonymous">
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- RTL/LTR Direction Script -->
+  <script>
+    // List of RTL language codes
+    const rtlLangs = ['ar', 'he', 'fa', 'ur'];
+    // Helper to get Google Translate language
+    function getGoogleTranslateLang() {
+      // Google Translate sets a cookie and changes html lang attribute
+      const htmlLang = document.documentElement.getAttribute('lang');
+      if (htmlLang) return htmlLang.split('-')[0];
+      // Fallback: check cookie
+      const match = document.cookie.match(/googtrans=\/([a-zA-Z-]+)\//);
+      if (match) return match[1].split('-')[0];
+      return 'en';
+    }
+    // Apply RTL/LTR direction and Bootstrap classes
+    function applyDirection() {
+      const lang = getGoogleTranslateLang();
+      const isRTL = rtlLangs.includes(lang);
+      document.documentElement.setAttribute('dir', isRTL ? 'rtl' : 'ltr');
+      document.body.classList.toggle('rtl', isRTL);
+      document.body.classList.toggle('ltr', !isRTL);
+      // Add Bootstrap RTL/LTR classes to main containers
+      const mainSections = document.querySelectorAll('.timeline, .custom-content-section, .newsletter-footer-bg');
+      mainSections.forEach(section => {
+        section.classList.toggle('bs-rtl', isRTL);
+        section.classList.toggle('bs-ltr', !isRTL);
+      });
+      // Align text for columns and cards
+      document.querySelectorAll('.card-content, .custom-content-section p').forEach(el => {
+        el.style.textAlign = isRTL ? 'right' : (el.classList.contains('text-center') ? 'center' : 'left');
+      });
+      // Align instructions
+      const instr = document.querySelector('.timeline-instructions');
+      if (instr) instr.style.textAlign = isRTL ? 'right' : 'center';
+      // Align footer links
+      const footerLinks = document.querySelector('.footer-links');
+      if (footerLinks) footerLinks.style.textAlign = isRTL ? 'right' : 'center';
+    }
+    // Observe Google Translate changes
+    let lastLang = getGoogleTranslateLang();
+    setInterval(() => {
+      const currentLang = getGoogleTranslateLang();
+      if (currentLang !== lastLang) {
+        lastLang = currentLang;
+        applyDirection();
+      }
+    }, 1000); // Check every second
+    // Initial direction
+    window.addEventListener('DOMContentLoaded', applyDirection);
+  </script>
+  <!-- Header / Hero Section -->
+  <header class="hero">
+    <div class="hero-content">
+      <img class="intel-logo" src="img/intel-header-logo.svg" alt="Intel Logo" />
+      <h1>Sustainability Through the Ages</h1>
+      <p>
+        Explore Intel's journey through time, discovering how our commitment
+        to innovation has shaped a more sustainable future for technology 
+        and our planet.
+      </p>
+    </div>
+  </header>
+
+  <!-- Timeline Cards Section -->
+  <section class="timeline">
+  <!-- Card 1: 1968 -->
+  <div class="timeline-card card-1968" tabindex="0">
+      <div class="card-image">
+  <img src="img/Card1 Image.jpg" alt="Two men sitting at a table speaking over documents." />
+        <div class="card-overlay">
+          <p>
+            Robert Noyce and Gordon Moore rename the newly formed company 
+            NM Electronics to Intel Corporation, laying the foundation for 
+            decades of technological innovation.
+          </p>
+        </div>
+      </div>
+      <div class="card-content">
+        <h2>1968</h2>
+        <h3>Intel Founded</h3>
+      </div>
+    </div>
+
+    <!-- Card 2: 1971 -->
+    <div class="timeline-card card-1971" tabindex="0">
+      <div class="card-image">
+  <img src="img/Card2 Image.jpg" alt="Close up of an early microprocessor." />
+        <div class="card-overlay">
+          <p>
+            Intel debuts the 4004, the world's first commercial microprocessor, 
+            igniting the microprocessor revolution and propelling the future 
+            of computing devices.
+          </p>
+        </div>
+      </div>
+      <div class="card-content">
+        <h2>1971</h2>
+        <h3>First Microprocessor</h3>
+      </div>
+    </div>
+
+    <!-- Card 3: 1978 -->
+    <div class="timeline-card card-1978" tabindex="0">
+      <div class="card-image">
+  <img src="img/Card3 Image.jpg" alt="Close up of a processor on a motherboard." />
+        <div class="card-overlay">
+          <p>
+            Launch of the 8086 processor, establishing the x86 architecture 
+            that drives countless PCs and servers in the modern era.
+          </p>
+        </div>
+      </div>
+      <div class="card-content">
+        <h2>1978</h2>
+        <h3>8086 Processor</h3>
+      </div>
+    </div>
+
+    <!-- Card 4: 1985 -->
+    <div class="timeline-card card-1985" tabindex="0">
+      <div class="card-image">
+  <img src="img/Card4 Image.jpg" alt="Close up of a processor with Intel branding." />
+        <div class="card-overlay">
+          <p>
+            Intel introduces the 386 processor with 32-bit architecture, 
+            ushering in a new era of performance and multitasking for 
+            personal computers.
+          </p>
+        </div>
+      </div>
+      <div class="card-content">
+        <h2>1985</h2>
+        <h3>386 Processor</h3>
+      </div>
+    </div>
+
+    <!-- Card 5: 2006 -->
+    <div class="timeline-card" tabindex="0">
+      <div class="card-image">
+  <img src="img/Card5 Image.jpg" alt="A large manufacturing facility with smokestacks emitting thick clouds of smoke into the sky." />
+        <div class="card-overlay">
+          <p>
+            This year marks Intel's highest annual greenhouse gas emissions 
+            for operations. Over subsequent years, Intel invests heavily in 
+            chemical abatement, renewable energy, and energy-efficient 
+            manufacturing to reverse this trend.
+          </p>
+        </div>
+      </div>
+      <div class="card-content">
+        <h2>2006</h2>
+        <h3>Peak GHG Emissions</h3>
+      </div>
+    </div>
+
+    <!-- Card 6: 2020 -->
+    <div class="timeline-card" tabindex="0">
+      <div class="card-image">
+  <img src="img/Card6 Image.jpg" alt="A modern tech campus surrounded by greenery and solar panels." />
+        <div class="card-overlay">
+          <p>
+            Intel launches its RISE (Responsible, Inclusive, Sustainable, 
+            Enabling) strategy and 2030 goals, aiming to drive industry-wide 
+            progress on climate action, water stewardship, and waste reduction.
+          </p>
+        </div>
+      </div>
+      <div class="card-content">
+        <h2>2020</h2>
+        <h3>RISE Strategy</h3>
+      </div>
+    </div>
+
+    <!-- Card 7: 2022 -->
+    <div class="timeline-card" tabindex="0">
+      <div class="card-image">
+  <img src="img/Card7 Image.jpg" alt="Closeup of a mostly-obscured building with windmills in the background." />
+        <div class="card-overlay">
+          <p>
+            Intel announces its commitment to achieve net-zero greenhouse 
+            gas emissions (Scope 1 and 2) across its global operations 
+            by 2040, building on years of environmental initiatives.
+          </p>
+        </div>
+      </div>
+      <div class="card-content">
+        <h2>2022</h2>
+        <h3>Net-Zero By 2040</h3>
+      </div>
+    </div>
+
+    <!-- Card 8: 2023 -->
+    <div class="timeline-card" tabindex="0">
+      <div class="card-image">
+  <img src="img/Card8 Image.jpg" alt="A multi-story data center surrounded by solar panels and windmills." />
+        <div class="card-overlay">
+          <p>
+            The company achieves 99% renewable electricity usage worldwide, 
+            helping to drastically lower carbon emissions and driving progress 
+            toward Intel's long-term sustainability goals.
+          </p>
+        </div>
+      </div>
+      <div class="card-content">
+        <h2>2023</h2>
+        <h3>Renewable Electricity</h3>
+      </div>
+    </div>
+
+    <!-- Card 9: 2024 -->
+    <div class="timeline-card card-2024" tabindex="0">
+      <div class="card-image">
+  <img src="img/Card9 Image.jpg" alt="A panel of speakers on a stage below a screen displaying the Intel logo." />
+        <div class="card-overlay">
+          <p>
+            Intel hosts its first Sustainability Summit, uniting suppliers, 
+            government officials, and industry leaders to collaborate on 
+            next-generation sustainable semiconductor manufacturing.
+          </p>
+        </div>
+      </div>
+      <div class="card-content">
+        <h2>2024</h2>
+        <h3>Sustainability Summit</h3>
+      </div>
+    </div>
+  </section>
+  <p class="timeline-instructions">Scroll to view timeline | Hover over cards to learn more!</p>
+
+  <!-- 3-Column Content Section (Bootstrap Grid) -->
+<section class="custom-content-section">
+  <div class="row text-md-start text-center">
+    <!-- Column 1 -->
+    <div class="col-md-4 mb-md-0 mb-5">
+      <!-- Added icon for RISE Strategy -->
+      <h2><i class="bi bi-bar-chart-line-fill" aria-hidden="true"></i> RISE Strategy</h2>
+      <p>
+        Under its RISE (Responsible, Inclusive, Sustainable, Enabling) strategy, 
+        Intel sets ambitious 2030 goals, including driving industry-wide 
+        progress on climate action, water stewardship, and waste reduction.
+      </p>
+      <a href="#" class="btn btn-primary">Learn More</a>
+    </div>
+    <!-- Column 2 -->
+  <div class="col-md-4 mb-md-0 mb-5">
+  <!-- Added icon for Commitment -->
+  <h2><i class="bi bi-shield-check" aria-hidden="true"></i> Commitment</h2>
+      <p>
+        In 2022, Intel pledged to achieve net-zero greenhouse gas emissions 
+        (Scope 1 and 2) by 2040. This commitment builds on decades of 
+        environmental initiatives and partnerships across the semiconductor 
+        industry.
+      </p>
+      <a href="#" class="btn btn-primary">Learn More</a>
+    </div>
+    <!-- Column 3 -->
+  <div class="col-md-4">
+  <!-- Added icon for Water & Waste -->
+  <h2><i class="bi bi-droplet-half" aria-hidden="true"></i> Water &amp; Waste</h2>
+      <p>
+        Intel conserves billions of gallons of water annually and 
+        collaborates with local communities to restore watersheds.
+        Intel also upcycles and recycles materials to reduce waste and 
+        advance a circular economy.
+      </p>
+      <a href="#" class="btn btn-primary">Learn More</a>
+    </div>
+  </div>
+</section>
+
+  <!-- Subscription Form -->
+  <!-- Newsletter Subscription Footer Section -->
+  <!-- Newsletter Subscription Footer Section -->
+  <footer class="newsletter-footer-bg mt-5">
+    <div class="newsletter-footer-content">
+      <!-- Section heading styled to match Intel branding -->
+      <h2 class="newsletter-title">Subscribe to Our Sustainability Newsletter</h2>
+      <p class="newsletter-desc">Get the latest updates on Intel’s sustainability initiatives, events, and progress—delivered right to your inbox.</p>
+      <!-- Simple Bootstrap form for email subscription -->
+      <form id="subscriptionForm" class="newsletter-form" autocomplete="off">
+        <div class="input-group mb-3">
+          <!-- Email input field -->
+          <input type="email" class="form-control" placeholder="Enter your email" aria-label="Email" required>
+          <!-- Subscribe button -->
+          <button class="btn btn-primary" type="submit">Subscribe</button>
+        </div>
+      </form>
+      <!-- Small privacy note -->
+      <small class="newsletter-privacy">We respect your privacy. Unsubscribe anytime.</small>
+    </div>
+    <!-- Subtle separator line between sections -->
+    <div class="footer-separator" aria-hidden="true"></div>
+    <!-- New footer section for copyright and navigation links -->
+    <div class="footer-bottom">
+      <div class="footer-links">
+        <!-- Placeholder navigation links -->
+        <a href="#" class="footer-link">Privacy Policy</a>
+        <span class="footer-divider">|</span>
+        <a href="#" class="footer-link">Terms of Use</a>
+        <span class="footer-divider">|</span>
+        <a href="#" class="footer-link">Contact</a>
+      </div>
+      <div class="footer-copyright">
+        &copy; 2025 Intel Corporation. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
+    <div id="subscriptionToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">
+          Subscription successful! Thank you for subscribing.
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toast Trigger on Form Submission
+    document.getElementById('subscriptionForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent actual form submission
+      const toast = new bootstrap.Toast(document.getElementById('subscriptionToast'));
+      toast.show();
+
+      // Clear the input box
+      this.querySelector('input[type="email"]').value = '';
+    });
+  </script>
+</body>
+</html>
