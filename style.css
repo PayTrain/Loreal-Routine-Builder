@@ -294,6 +294,15 @@ body {
   min-height: 160px;
   position: relative; /* Needed for checkmark overlay */
   min-width: 0; /* allow content to shrink without forcing wrap */
+  cursor: pointer; /* make the whole card feel interactive */
+  transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s,
+    background-color 0.25s; /* smooth hover parity with selected cards */
+}
+
+.product-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+  border-color: #000;
 }
 
 .product-card.selected {
@@ -303,6 +312,12 @@ body {
   box-sizing: border-box;
   /* Use outline for border outside padding */
   outline: 1.5px solid #e3a535;
+}
+
+/* Preserve selection styling on hover while adding the same lift/shadow */
+.product-card.selected:hover {
+  border-color: #e3a535;
+  box-shadow: 0 0 0 3px #fdf5e6, 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 .product-card .selected-check {
@@ -454,6 +469,7 @@ body {
   gap: 8px;
   text-align: center;
   transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
+  cursor: pointer; /* match product-card interactive cursor */
 }
 
 .selected-card:hover {
@@ -506,7 +522,7 @@ body {
 
 .selected-card .remove-selected:hover {
   background: var(--brand-red);
-  transform: scale(1.07);
+  /* removed scale transform to eliminate hover enlargement */
 }
 
 .selected-card .remove-selected:focus {
@@ -631,9 +647,6 @@ body {
   outline-offset: 2px;
 }
 
-/* ================= Chat Bubble Styling (added from previous project) ================= */
-/* These styles create distinct user/assistant bubbles without altering the existing
-   chat-window container's outward appearance. */
 .chat-message {
   margin-bottom: 30px;
   display: flex;
@@ -752,9 +765,8 @@ body {
   }
 }
 
-/* ================= Modal (Product Details) ================= */
 body.modal-open {
-  overflow: hidden; /* prevent background scroll while modal open */
+  overflow: hidden;
 }
 
 .modal[hidden] {
@@ -901,8 +913,6 @@ body.modal-open {
   transform: none;
 }
 
-/* ================= RTL Overrides ================= */
-/* These rules activate when body has the .rtl class (set by JS detection). */
 body.rtl {
   direction: rtl;
 }
@@ -1002,5 +1012,3 @@ body.rtl .modal-close {
   left: 10px;
   right: auto;
 }
-
-/* (removed) Direction toggle button styles */
