@@ -641,7 +641,7 @@ body {
 /* These styles create distinct user/assistant bubbles without altering the existing
    chat-window container's outward appearance. */
 .chat-message {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   display: flex;
   flex-direction: column;
 }

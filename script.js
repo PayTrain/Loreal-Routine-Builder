@@ -1024,16 +1024,29 @@ function renderChat({ scrollTo } = {}) {
     chatWindow.appendChild(wrapper);
   });
 
+  // OFFSET of 20px above the target message
+  const OFFSET = 20;
+
   if (scrollTo === "lastUserTop") {
-    // Find the last user message element and align it to the top of the scroll container
+    // Find the last user message element and align it 20px above the top of the scroll container
     const userMessages = chatWindow.querySelectorAll(".chat-message.user");
     const lastUser = userMessages[userMessages.length - 1];
     if (lastUser) {
-      // Position the last user message slightly below the top of the chat window
-      // using a fixed offset equal to the gap between chat bubbles (margin-bottom: 20px)
-      const OFFSET = 20; // matches the gap between chat bubbles
       const containerRect = chatWindow.getBoundingClientRect();
       const lastRect = lastUser.getBoundingClientRect();
+      const deltaTop = lastRect.top - containerRect.top; // distance from top of container
+      const target = Math.max(0, chatWindow.scrollTop + deltaTop - OFFSET);
+      chatWindow.scrollTop = target;
+    }
+  } else if (scrollTo === "lastAssistantTop") {
+    // Find the last assistant message element and align it 20px above the top of the scroll container
+    const assistantMessages = chatWindow.querySelectorAll(
+      ".chat-message.assistant"
+    );
+    const lastAssistant = assistantMessages[assistantMessages.length - 1];
+    if (lastAssistant) {
+      const containerRect = chatWindow.getBoundingClientRect();
+      const lastRect = lastAssistant.getBoundingClientRect();
       const deltaTop = lastRect.top - containerRect.top; // distance from top of container
       const target = Math.max(0, chatWindow.scrollTop + deltaTop - OFFSET);
       chatWindow.scrollTop = target;
@@ -1074,13 +1087,13 @@ async function callOpenAI() {
       data.choices?.[0]?.message?.content ??
       "Sorry, I did not receive a reply.";
     chatHistory.push({ role: "assistant", content: assistantContent });
-    renderChat({ scrollTo: "lastUserTop" });
+    renderChat({ scrollTo: "lastAssistantTop" });
   } catch (err) {
     chatHistory.push({
       role: "assistant",
       content: `Error: ${err.message}. Please try again.`,
     });
-    renderChat();
+    renderChat({ scrollTo: "lastAssistantTop" });
   } finally {
     userInput.disabled = false;
     sendBtn.disabled = false;
@@ -1098,7 +1111,7 @@ chatForm.addEventListener("submit", async (e) => {
   updateProfileFromUserText(text);
 
   chatHistory.push({ role: "user", content: text });
-  renderChat();
+  renderChat({ scrollTo: "lastUserTop" });
   userInput.value = "";
   userInput.disabled = true;
   sendBtn.disabled = true;
@@ -1108,7 +1121,7 @@ chatForm.addEventListener("submit", async (e) => {
     role: "assistant",
     content: "Preparing a *fabulous* response just for you...",
   });
-  renderChat();
+  renderChat({ scrollTo: "lastUserTop" });
 
   // Remove indicator before actual API call
   chatHistory = chatHistory.filter(
@@ -1147,7 +1160,7 @@ generateRoutineBtn.addEventListener("click", async () => {
 
   // Add user message to chat history
   chatHistory.push({ role: "user", content: userPrompt });
-  renderChat();
+  renderChat({ scrollTo: "lastUserTop" });
 
   // Disable input and button during API call
   userInput.disabled = true;
@@ -1159,7 +1172,7 @@ generateRoutineBtn.addEventListener("click", async () => {
     role: "assistant",
     content: "Preparing a *fabulous* response just for you...",
   });
-  renderChat();
+  renderChat({ scrollTo: "lastUserTop" });
 
   // Remove thinking indicator
   chatHistory = chatHistory.filter(
@@ -1235,13 +1248,13 @@ Keep the routine practical, easy to follow, and tailored to the specific product
 
     // Add AI response to chat history
     chatHistory.push({ role: "assistant", content: assistantContent });
-    renderChat({ scrollTo: "lastUserTop" });
+    renderChat({ scrollTo: "lastAssistantTop" });
   } catch (err) {
     chatHistory.push({
       role: "assistant",
       content: `Error: ${err.message}. Please try again.`,
     });
-    renderChat();
+    renderChat({ scrollTo: "lastAssistantTop" });
   } finally {
     // Re-enable inputs
     userInput.disabled = false;
